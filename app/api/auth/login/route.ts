@@ -36,9 +36,11 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ rol: data.rol, message: 'Login exitoso' });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error en API login:', error);
+    const targetUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ message: `Error interno del servidor: ${errorMessage}` }, { status: 500 });
+    const cause = error.cause ? String(error.cause) : 'No cause';
+    return NextResponse.json({ message: `Error interno del servidor: ${errorMessage}. Causa: ${cause}. URL destino: ${targetUrl}` }, { status: 500 });
   }
 }
