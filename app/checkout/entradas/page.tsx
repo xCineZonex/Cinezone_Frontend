@@ -1,0 +1,398 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Clock, MapPin, Calendar, Film, X as CloseIcon, Plus, Minus, Tag, Globe, Ticket } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useCartStore } from '@/store/useCartStore';
+import api from '@/lib/api';
+import { toast } from 'sonner';
+
+export default function CheckoutEntradasPage() {
+  const router = useRouter();
+  const { funcionId, pelicula, asientos, setTickets, bookingExpiresAt } = useCartStore();
+  const seatsCount = asientos.length;
+
+  const [generalTickets, setGeneralTickets] = useState<any[]>([]);
+  const [dynamicBenefits, setDynamicBenefits] = useState<any[]>([]);
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Local state for quantities
+  const [selectedTickets, setSelectedTickets] = useState<{ [key: string]: number }>({});
+  const [selectedBenefits, setSelectedBenefits] = useState<{ [key: string]: number }>({});
+  
+  const [rol, setRol] = useState('');
+
+  const [timeLeft, setTimeLeft] = useState('05:00');
+
+  useEffect(() => {
+    setRol(localStorage.getItem('rol') || '');
+    if (!funcionId || seatsCount === 0) {
+      toast.error('No has seleccionado asientos válidos.');
+      router.push('/');
+      return;
+    }
+    fetchData();
+  }, [funcionId]);
+
+  useEffect(() => {
+    if (!bookingExpiresAt) return;
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const diff = bookingExpiresAt - now;
+      if (diff <= 0) {
+        clearInterval(interval);
+        setTimeLeft('00:00');
+        toast.error('Tiempo expirado');
+        useCartStore.getState().clearCart();
+        router.push('/');
+      } else {
+        const m = Math.floor(diff / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        setTimeLeft(`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [bookingExpiresAt, router]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // Usamos los endpoints correctos (agregando /public cuando aplique)
+      const [ticketsRes, profileRes, benefitsRes] = await Promise.allSettled([
+        api.get(`/public/funciones/${funcionId}/tipos-entrada`),
+        api.get('/users/me'),
+        api.get('/public/beneficios')
+      ]);
+
+      if (ticketsRes.status === 'fulfilled') {
+        const apiTickets = ticketsRes.value.data.map((t: any) => ({
+          id: t.tipo, 
+          name: t.nombre || t.tipo,
+          description: t.tipo === 'NORMAL' ? 'Entrada General 2D' : t.tipo === 'TERCERA_EDAD' ? 'Mayores 60 años' : 'Conadis/Niños',
+          price: t.precio,
+          fee: 0.00, // Sin servicio extra
+          isLowest: t.tipo === 'TERCERA_EDAD' || t.tipo === 'NINO'
+        }));
+        setGeneralTickets(apiTickets);
+      }
+
+      let userLevel = null;
+      if (profileRes.status === 'fulfilled') {
+        setProfile(profileRes.value.data);
+        userLevel = profileRes.value.data.nivelActual?.toUpperCase();
+      }
+
+      if (benefitsRes.status === 'fulfilled') {
+        // Filtrar los beneficios según el nivel del usuario
+        // Lógica de niveles: Azul = 1, Dorado = 2, Negro = 3
+        const levelMap: Record<string, number> = {
+          'AZUL': 1,
+          'DORADO': 2,
+          'NEGRO': 3
+        };
+        const userLevelScore = userLevel ? levelMap[userLevel] || 0 : 0;
+        
+        const validBenefits = benefitsRes.value.data.filter((b: any) => {
+           const requiredScore = levelMap[b.tierName?.toUpperCase()] || 0;
+           return userLevelScore >= requiredScore;
+        });
+        setDynamicBenefits(validBenefits);
+      }
+
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || e.response?.data?.error || 'Error cargando información de la función');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGeneralChange = (id: string, delta: number) => {
+    setSelectedTickets(prev => {
+      const current = prev[id] || 0;
+      const next = Math.max(0, current + delta);
+      return { ...prev, [id]: next };
+    });
+  };
+
+  const handleBenefitChange = (id: string, delta: number) => {
+    setSelectedBenefits(prev => {
+      const current = prev[id] || 0;
+      const next = Math.max(0, current + delta);
+      return { ...prev, [id]: next };
+    });
+  };
+
+  const totalSelected = 
+    Object.values(selectedTickets).reduce((a, b) => a + b, 0) + 
+    dynamicBenefits.reduce((acc, b) => acc + (selectedBenefits[String(b.id)] || 0) * (b.ticketCount || 1), 0);
+
+  const isMatched = totalSelected === seatsCount;
+
+  const handleContinue = () => {
+    if (!isMatched) {
+      toast.error(`Debes seleccionar exactamente ${seatsCount} entrada(s). Has seleccionado ${totalSelected}.`);
+      return;
+    }
+    
+    const finalTickets: any[] = [];
+    
+    generalTickets.forEach(t => {
+      const qty = selectedTickets[t.id] || 0;
+      if (qty > 0) {
+        finalTickets.push({
+          label: t.name,
+          cantidad: qty,
+          precio: t.price + t.fee,
+          typeKey: t.id
+        });
+      }
+    });
+
+    // Añadir beneficios dinámicos seleccionados
+    dynamicBenefits.forEach(b => {
+      const bId = String(b.id);
+      const qty = selectedBenefits[bId] || 0;
+      if (qty > 0) {
+        const tCount = b.ticketCount || 1;
+        finalTickets.push({
+          label: b.name,
+          cantidad: qty * tCount,
+          precio: b.price / tCount,
+          typeKey: 'BENEFICIO',
+          benefitId: b.id
+        });
+      }
+    });
+
+    setTickets(finalTickets);
+    if (rol === 'STAFF') {
+      router.push('/checkout/pago');
+    } else {
+      router.push('/dulceria');
+    }
+  };
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center bg-background"><div className="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full" /></div>;
+  }
+
+  const nivel = profile ? (profile.nivelActual || '').toUpperCase() : null;
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <header className="bg-card border-b border-border sticky top-0 z-40">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors font-medium">
+            <ArrowLeft className="w-5 h-5" /> Atrás
+          </button>
+          
+          <h1 className="text-xl font-bold">2. Entradas</h1>
+          
+          <div className="flex items-center gap-4">
+            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80">
+              <Globe className="w-4 h-4" />
+            </button>
+            <button onClick={() => { useCartStore.getState().clearCart(); router.push('/'); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80">
+              <CloseIcon className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        
+        {/* Progress Bar & Timer */}
+        <div className="bg-secondary/30 border-b border-border py-2 px-4">
+          <div className="container mx-auto flex items-center justify-between text-xs font-semibold">
+            <div className="flex items-center gap-2 flex-1 max-w-md">
+              <div className="flex-1 h-2 bg-primary rounded-full" />
+              <div className="flex-1 h-2 bg-primary rounded-full" />
+              <div className="flex-1 h-2 bg-secondary rounded-full" />
+              <div className="flex-1 h-2 bg-secondary rounded-full" />
+            </div>
+            <div className="flex items-center gap-2 text-destructive font-bold bg-destructive/10 px-3 py-1 rounded-full">
+              <Clock className="w-3.5 h-3.5" /> {timeLeft}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="flex-1 container mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
+        
+        {/* Left Panel - Fixed */}
+        <div className="w-full lg:w-1/3">
+          <div className="bg-card border border-border rounded-2xl p-6 sticky top-36">
+            <div className="flex gap-4 mb-6">
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-secondary flex-shrink-0 relative">
+                <img src={pelicula.posterUrl || '/images/placeholder.jpg'} alt="Poster" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex flex-col justify-center">
+                <h2 className="text-xl font-black leading-tight mb-1">{pelicula.titulo || 'Película'}</h2>
+                <div className="flex flex-wrap gap-2 text-xs font-bold mb-2">
+                  <span className="bg-secondary px-2 py-0.5 rounded text-muted-foreground">{pelicula.formato || '2D'}</span>
+                  <span className="bg-secondary px-2 py-0.5 rounded text-muted-foreground">{pelicula.idioma || 'SUB'}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-3 text-sm mb-6">
+              <div className="flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-primary flex-shrink-0" />
+                <p className="font-bold">{pelicula.sedeNombre || 'Cinezone Center'}</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <Calendar className="w-5 h-5 text-primary flex-shrink-0" />
+                <p className="font-semibold text-muted-foreground">{pelicula.fechaHora || 'Hoy, 20:00'}</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <Film className="w-5 h-5 text-primary flex-shrink-0" />
+                <p className="font-semibold text-muted-foreground">{pelicula.salaNombre || 'Sala 1'}</p>
+              </div>
+            </div>
+
+            <div className="border-t border-border pt-4">
+              <div className="flex justify-between items-center text-lg font-black">
+                <span>Butacas seleccionadas:</span>
+                <span className="text-primary text-2xl">{seatsCount}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Panel - Two Columns */}
+        <div className="w-full lg:w-2/3 flex flex-col gap-6">
+          <div className="bg-card border border-border rounded-2xl p-6 mb-6 sticky bottom-0 z-30 flex justify-between items-center shadow-2xl">
+            <div>
+              <p className="text-sm font-semibold text-muted-foreground">Seleccionadas: <span className={`font-black text-lg ${isMatched ? 'text-green-500' : 'text-primary'}`}>{totalSelected} / {seatsCount}</span></p>
+              {!isMatched && <p className="text-xs text-destructive mt-1">Faltan {Math.max(0, seatsCount - totalSelected)} entradas</p>}
+            </div>
+            <button 
+              onClick={handleContinue}
+              disabled={!isMatched}
+              className={`px-8 py-3 font-bold rounded-xl transition-all ${isMatched ? 'bg-primary text-primary-foreground shadow-lg hover:bg-primary/90' : 'bg-secondary text-muted-foreground cursor-not-allowed'}`}
+            >
+              {rol === 'STAFF' ? 'Continuar al Pago' : 'Continuar a Dulcería'}
+            </button>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Column 1: Entradas generales */}
+            <div>
+              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Ticket className="w-5 h-5 text-primary" /> Entradas Generales
+              </h3>
+              <div className="space-y-4">
+                {generalTickets.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">No hay tipos de entradas disponibles.</p>
+                ) : (
+                  generalTickets.map(t => (
+                    <div key={t.id} className="bg-secondary/30 border border-border p-4 rounded-xl hover:bg-secondary/50 transition-colors">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 className="font-bold flex items-center gap-2 text-foreground">
+                            {t.name}
+                            {t.isLowest && <span className="bg-green-500/20 text-green-500 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">Precio más bajo</span>}
+                          </h4>
+                          <p className="text-xs text-muted-foreground mt-1">{t.description}</p>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-end mt-4">
+                        <div>
+                          <p className="font-black text-xl text-primary">S/ {t.price.toFixed(2)}</p>
+                        </div>
+                        <div className="flex items-center gap-3 bg-background rounded-lg p-1 border border-border">
+                          <button onClick={() => handleGeneralChange(t.id, -1)} disabled={(selectedTickets[t.id] || 0) <= 0} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-secondary disabled:opacity-50 transition-colors">
+                            <Minus className="w-4 h-4" />
+                          </button>
+                          <span className="font-bold w-4 text-center">{selectedTickets[t.id] || 0}</span>
+                          <button onClick={() => handleGeneralChange(t.id, 1)} disabled={totalSelected + 1 > seatsCount} className="w-8 h-8 flex items-center justify-center rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors disabled:opacity-50">
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Column 2: Tus Beneficios */}
+            <div>
+              <div className="flex justify-between items-end mb-4">
+                <h3 className="text-xl font-bold flex items-center gap-2">
+                  <Tag className="w-5 h-5 text-accent" /> Tus Beneficios
+                </h3>
+              </div>
+              
+              {!profile ? (
+                <div className="bg-accent/10 border border-accent/20 p-6 rounded-xl text-center">
+                  <h4 className="font-bold text-accent mb-2">Inicia sesión para ver tus beneficios</h4>
+                  <p className="text-sm text-muted-foreground mb-4">Si eres socio Cinezone, podrías tener entradas a precio especial o gratis.</p>
+                  <button onClick={() => router.push('/login')} className="px-4 py-2 bg-accent text-accent-foreground font-semibold rounded-lg text-sm w-full hover:bg-accent/90 transition-colors">Iniciar Sesión</button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {dynamicBenefits.length === 0 ? (
+                    <p className="text-muted-foreground text-sm">No tienes beneficios de entradas disponibles por el momento.</p>
+                  ) : (
+                    dynamicBenefits.map(b => {
+                      const tCount = b.ticketCount || 1;
+                      const currentSelected = selectedBenefits[String(b.id)] || 0;
+                      const bMonthlyLimit = b.monthlyLimit || 0;
+                      const usedThisMonth = profile?.monthlyBenefitUsage?.[String(b.id)] || 0;
+                      const remainingInMonth = bMonthlyLimit > 0 ? (bMonthlyLimit - usedThisMonth - currentSelected * tCount) : Infinity;
+                      
+                      const hasEnoughLimit = remainingInMonth >= tCount;
+                      const hasEnoughPoints = b.pointsRequired === 0 || (profile.puntos || 0) >= (currentSelected + 1) * b.pointsRequired;
+                      const doesNotExceedSeats = totalSelected + tCount <= seatsCount;
+
+                      return (
+                        <div key={b.id} className="bg-gradient-to-br from-blue-900/40 to-background border border-blue-500/30 p-4 rounded-xl relative overflow-hidden">
+                          <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 rounded-bl-full" />
+                          <div className="flex justify-between items-start mb-1">
+                            <h4 className="font-bold text-blue-400">{b.name}</h4>
+                            {bMonthlyLimit > 0 && (
+                              <span className="text-[10px] font-bold bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/30">
+                                Quedan {remainingInMonth + (currentSelected * tCount)}/{bMonthlyLimit}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+                            Entrada especial para nivel {b.tierName}. {b.pointsRequired > 0 ? `Canjéala por ${b.pointsRequired} puntos.` : ''}
+                            <br/><span className="text-foreground font-semibold">{profile.puntos || 0} pts disponibles</span>
+                          </p>
+                          <div className="flex justify-between items-end">
+                            <div>
+                              <p className="font-black text-xl text-foreground">
+                                {b.price === 0 ? <span className="text-yellow-500">GRATIS</span> : `S/ ${b.price.toFixed(2)}`}
+                              </p>
+                              {b.price !== 0 && <span className="bg-blue-500/20 text-blue-400 text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-wider mt-1 inline-block">Precio Socio</span>}
+                            </div>
+                            <div className="flex items-center gap-3 bg-background/50 rounded-lg p-1 border border-blue-500/20">
+                              <button onClick={() => handleBenefitChange(String(b.id), -1)} disabled={currentSelected <= 0} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-blue-500/20 disabled:opacity-50 transition-colors">
+                                <Minus className="w-4 h-4 text-blue-400" />
+                              </button>
+                              <span className="font-bold w-4 text-center">{currentSelected}</span>
+                              <button 
+                                onClick={() => handleBenefitChange(String(b.id), 1)} 
+                                disabled={!doesNotExceedSeats || !hasEnoughPoints || !hasEnoughLimit} 
+                                className="w-8 h-8 flex items-center justify-center rounded-md bg-blue-500 text-white hover:bg-blue-400 transition-colors disabled:opacity-50"
+                                title={!hasEnoughLimit ? "Límite mensual alcanzado" : ""}
+                              >
+                                <Plus className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
