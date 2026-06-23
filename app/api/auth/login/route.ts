@@ -13,7 +13,14 @@ export async function POST(request: Request) {
       body: JSON.stringify(body),
     });
 
-    const data = await response.json();
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      console.error('El backend no devolvió JSON:', text);
+      return NextResponse.json({ message: `Respuesta inválida del backend (${response.status}): ${text.substring(0, 100)}` }, { status: 502 });
+    }
 
     if (!response.ok) {
       return NextResponse.json({ message: data.message || 'Error de autenticación' }, { status: response.status });
@@ -31,6 +38,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ rol: data.rol, message: 'Login exitoso' });
   } catch (error) {
     console.error('Error en API login:', error);
-    return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ message: `Error interno del servidor: ${errorMessage}` }, { status: 500 });
   }
 }
