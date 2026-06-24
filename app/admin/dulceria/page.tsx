@@ -120,6 +120,11 @@ export default function DulceriaPage() {
       return;
     }
 
+    if (Number(precioLocal) < selectedPriceCombo.precio) {
+      toast.error(`El precio local no puede ser menor al precio base (S/ ${selectedPriceCombo.precio.toFixed(2)})`);
+      return;
+    }
+
     setIsSettingPrice(true);
     try {
       await api.patch(`/admin/inventory/stock/${selectedPriceCombo.id}/sede/${activeSedeId}/precio?precioLocal=${precioLocal}`);
