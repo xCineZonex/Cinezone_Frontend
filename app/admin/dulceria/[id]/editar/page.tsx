@@ -56,8 +56,8 @@ export default function EditarDulceriaPage() {
           precio: producto.precio.toString(),
           precioPuntos: producto.precioPuntos ? producto.precioPuntos.toString() : '',
           categoria: producto.categoria,
-          stock: producto.stock !== null ? producto.stock.toString() : '',
-          requiredTierId: producto.requiredTier ? producto.requiredTier.id.toString() : '-1',
+          stock: producto.stock != null ? producto.stock.toString() : '',
+          requiredTierId: producto.requiredTier ? producto.requiredTier.id.toString() : (producto.requiredTierId ? producto.requiredTierId.toString() : '-1'),
           imagen: producto.imagen || ''
         });
       } else {

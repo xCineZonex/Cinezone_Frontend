@@ -512,8 +512,8 @@ export default function InventarioPage() {
                   <p className="text-xs text-muted-foreground">{p.categoria}</p>
                 </div>
                 <div className="text-right">
-                  <span className={`font-mono font-bold text-lg ${p.stock <= 10 ? 'text-red-500' : 'text-green-500'}`}>
-                    {p.stock}
+                  <span className={`font-mono font-bold text-lg ${activeSedeId === 'all' ? 'text-muted-foreground' : (p.stock <= 10 ? 'text-red-500' : 'text-green-500')}`}>
+                    {activeSedeId === 'all' ? '-' : p.stock}
                   </span>
                   <p className="text-[10px] text-muted-foreground uppercase">Stock</p>
                 </div>

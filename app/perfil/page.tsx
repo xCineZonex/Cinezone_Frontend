@@ -353,11 +353,27 @@ export default function UserProfilePage() {
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-semibold">DNI</label>
-                        <input type="text" value={formData.dni} onChange={(e) => setFormData({...formData, dni: e.target.value})} className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary" />
+                        <input 
+                          type="text" 
+                          value={formData.dni} 
+                          onChange={(e) => setFormData({...formData, dni: e.target.value.replace(/[^0-9]/g, '')})} 
+                          maxLength={8}
+                          pattern="[0-9]{8}"
+                          title="Debe contener 8 dígitos"
+                          className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary" 
+                        />
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-semibold">Celular</label>
-                        <input type="text" value={formData.celular} onChange={(e) => setFormData({...formData, celular: e.target.value})} className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary" />
+                        <input 
+                          type="text" 
+                          value={formData.celular} 
+                          onChange={(e) => setFormData({...formData, celular: e.target.value.replace(/[^0-9]/g, '')})} 
+                          maxLength={9}
+                          pattern="[0-9]{9}"
+                          title="Debe contener 9 dígitos"
+                          className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary" 
+                        />
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-semibold">Sexo</label>

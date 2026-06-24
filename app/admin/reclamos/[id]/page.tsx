@@ -1,14 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, User, Mail, Phone, FileText, Send, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/api';
 
-export default function ResponderReclamoPage({ params }: { params: { id: string } }) {
+export default function ResponderReclamoPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
   const router = useRouter();
+  // Safe unwrapping for Next.js 15+
+  const resolvedParams = params instanceof Promise ? use(params) : params;
+  const id = resolvedParams.id;
+  
   const [complaint, setComplaint] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [replyText, setReplyText] = useState('');
@@ -16,12 +20,12 @@ export default function ResponderReclamoPage({ params }: { params: { id: string 
 
   useEffect(() => {
     fetchComplaint();
-  }, [params.id]);
+  }, [id]);
 
   const fetchComplaint = async () => {
     try {
       const res = await api.get('/admin/reclamos');
-      const found = res.data.find((c: any) => c.id.toString() === params.id);
+      const found = res.data.find((c: any) => c.id.toString() === id);
       if (found) setComplaint(found);
     } catch (error) {
       console.error('Error fetching complaint:', error);
@@ -36,8 +40,8 @@ export default function ResponderReclamoPage({ params }: { params: { id: string 
 
     setSending(true);
     try {
-      await api.put(`/admin/reclamos/${params.id}/responder`, {
-        respuesta: replyText
+      await api.put(`/admin/reclamos/${id}/responder`, {
+        respuestaAdmin: replyText
       });
       toast.success('Respuesta enviada al cliente');
       fetchComplaint(); // Recargar para ver estado RESPONDIDO

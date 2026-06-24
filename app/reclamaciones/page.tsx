@@ -9,6 +9,8 @@ import { toast } from 'sonner';
 
 export default function ReclamacionesPage() {
   const [loading, setLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
   const [formData, setFormData] = useState({
     nombreCompleto: '',
     tipoDocumento: 'DNI',
@@ -23,6 +25,16 @@ export default function ReclamacionesPage() {
   const [sedes, setSedes] = useState<any[]>([]);
 
   useEffect(() => {
+    // Check if logged in and prepopulate email
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsLoggedIn(true);
+      const userEmail = localStorage.getItem('correo_usuario') || ''; // Adjust key as per login if needed
+      if (userEmail) {
+        setFormData(prev => ({ ...prev, email: userEmail }));
+      }
+    }
+
     const fetchSedes = async () => {
       try {
         const response = await api.get('/public/sedes');
@@ -36,31 +48,61 @@ export default function ReclamacionesPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    
+    if (name === 'numeroDocumento' || name === 'telefono') {
+      // Solo permite números, sin espacios, ni signos negativos
+      const onlyNums = value.replace(/[^0-9]/g, '');
+      setFormData(prev => ({ ...prev, [name]: onlyNums }));
+      return;
+    }
+
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isLoggedIn) {
+      toast.error('Debe iniciar sesión para registrar una solicitud');
+      return;
+    }
+
+    // Validación extra
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error('Ingrese un correo electrónico válido');
+      return;
+    }
+
     setLoading(true);
     try {
       await api.post('/reclamaciones', formData);
       toast.success('Su solicitud ha sido enviada correctamente. Nos comunicaremos con usted a la brevedad.');
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         nombreCompleto: '',
         tipoDocumento: 'DNI',
         numeroDocumento: '',
-        email: '',
         telefono: '',
         tipoReclamo: 'RECLAMO',
         sedeId: '',
         detalle: '',
-      });
-    } catch (error) {
+      }));
+    } catch (error: any) {
       console.error('Error al enviar el reclamo:', error);
-      toast.error('Ocurrió un error al enviar su solicitud. Inténtelo nuevamente más tarde.');
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        toast.error('Debe iniciar sesión para registrar una solicitud');
+      } else {
+        toast.error('Ocurrió un error al enviar su solicitud. Inténtelo nuevamente más tarde.');
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const getMaxLength = () => {
+    if (formData.tipoDocumento === 'DNI') return 8;
+    if (formData.tipoDocumento === 'CE') return 12;
+    return 15;
   };
 
   return (
@@ -118,6 +160,9 @@ export default function ReclamacionesPage() {
                   name="numeroDocumento"
                   value={formData.numeroDocumento}
                   onChange={handleChange}
+                  maxLength={getMaxLength()}
+                  pattern="[0-9]+"
+                  title="Solo debe contener números"
                   className="w-full border border-border rounded-md px-3 py-2 bg-background"
                   placeholder="Número de documento"
                 />
@@ -127,12 +172,15 @@ export default function ReclamacionesPage() {
                 <label className="text-sm font-medium">Teléfono</label>
                 <input
                   required
-                  type="tel"
+                  type="text"
                   name="telefono"
                   value={formData.telefono}
                   onChange={handleChange}
+                  maxLength={9}
+                  pattern="[0-9]{9}"
+                  title="Debe contener exactamente 9 dígitos"
                   className="w-full border border-border rounded-md px-3 py-2 bg-background"
-                  placeholder="Número de contacto"
+                  placeholder="Ej. 987654321"
                 />
               </div>
 
@@ -144,7 +192,10 @@ export default function ReclamacionesPage() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full border border-border rounded-md px-3 py-2 bg-background"
+                  disabled={isLoggedIn && formData.email !== ''}
+                  pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                  title="Ingrese un correo válido, ej. usuario@dominio.com"
+                  className="w-full border border-border rounded-md px-3 py-2 bg-background disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="correo@ejemplo.com"
                 />
               </div>
@@ -195,7 +246,14 @@ export default function ReclamacionesPage() {
             </div>
 
             <button
-              type="submit"
+              type="button"
+              onClick={(e) => {
+                if (!isLoggedIn) {
+                  toast.error('Debe iniciar sesión para registrar una solicitud');
+                } else {
+                  handleSubmit(e as any);
+                }
+              }}
               disabled={loading}
               className="w-full bg-primary text-primary-foreground font-medium py-2 px-4 rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
