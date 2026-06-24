@@ -76,6 +76,10 @@ export default function EditarUsuarioPage() {
   const handleSedeToggle = (sedeId: number) => {
     setFormData(prev => {
       const isSelected = prev.sedesIds.includes(sedeId);
+      if (!isSelected && currentUser?.rol === 'ADMIN_SEDE' && prev.sedesIds.length >= 1) {
+        toast.error('Un Administrador de Sede solo puede asignar 1 sede por usuario.');
+        return prev;
+      }
       return {
         ...prev,
         sedesIds: isSelected 
