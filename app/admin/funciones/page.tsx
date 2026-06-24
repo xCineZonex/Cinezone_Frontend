@@ -85,6 +85,8 @@ export default function AdminFuncionesPage() {
                 </tr>
               ) : filteredFunciones.map((funcion) => {
                 const date = new Date(funcion.fechaHora);
+                const isPast = date.getTime() < Date.now();
+                const isEditable = !isPast && funcion.activa;
                 return (
                   <motion.tr 
                     key={funcion.id}
@@ -115,20 +117,26 @@ export default function AdminFuncionesPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`flex w-fit items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
-                        funcion.activa 
-                          ? 'bg-green-500/20 text-green-500' 
-                          : 'bg-red-500/20 text-red-500'
+                        isPast
+                          ? 'bg-zinc-500/20 text-zinc-400'
+                          : funcion.activa 
+                            ? 'bg-green-500/20 text-green-500' 
+                            : 'bg-red-500/20 text-red-500'
                       }`}>
-                        {funcion.activa ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                        {funcion.activa ? 'Activa' : 'Cancelada'}
+                        {isPast ? <CheckCircle className="w-3 h-3" /> : funcion.activa ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                        {isPast ? 'Finalizada' : funcion.activa ? 'Activa' : 'Cancelada'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link href={`/admin/funciones/${funcion.id}/editar`}>
-                        <button className="p-2 text-muted-foreground hover:text-primary transition-colors" title="Editar">
-                          <Edit className="w-4 h-4" />
-                        </button>
-                      </Link>
+                      {isEditable ? (
+                        <Link href={`/admin/funciones/${funcion.id}/editar`}>
+                          <button className="p-2 text-muted-foreground hover:text-primary transition-colors" title="Editar">
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        </Link>
+                      ) : (
+                        <span className="text-xs text-muted-foreground italic px-2">Bloqueado</span>
+                      )}
                     </td>
                   </motion.tr>
                 );
