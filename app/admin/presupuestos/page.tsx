@@ -97,7 +97,7 @@ export default function PresupuestosPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          {rol === 'ADMIN_SEDE' && (
+          {(rol === 'ADMIN_SEDE' || rol === 'SUPER_ADMIN') && (
             <Link href="/admin/presupuestos/nueva">
               <button className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg transition-colors shadow-lg shadow-primary/20">
                 <span className="text-lg leading-none">+</span> Nueva Solicitud

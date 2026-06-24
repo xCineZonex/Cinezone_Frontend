@@ -52,6 +52,9 @@ function PriceRow({ base, sedePrices, isSuperAdmin, activeSedeId, handleSaveLoca
             <span className={`px-4 py-1 rounded-full text-xs font-black tracking-widest uppercase ${isActive ? 'bg-purple-500/20 text-purple-400' : 'bg-zinc-800 text-zinc-500'}`}>
               {base.ticketType}
             </span>
+            <span className={`px-4 py-1 rounded-full text-xs font-black tracking-widest uppercase ${isActive ? 'bg-blue-500/20 text-blue-400' : 'bg-zinc-800 text-zinc-500'}`}>
+              {base.formato || 'FORMAT_2D'}
+            </span>
             <div className="flex items-center gap-1.5 text-sm text-zinc-400 font-medium bg-zinc-900/50 px-3 py-1 rounded-full border border-zinc-800/50">
               <span>Base Referencial:</span>
               <span className="text-white font-bold">S/ {Number(base.basePrice).toFixed(2)}</span>
@@ -140,7 +143,7 @@ export default function PreciosAdminPage() {
   // Form states for base prices (SuperAdmin)
   const [showBaseForm, setShowBaseForm] = useState(false);
   const [editingBase, setEditingBase] = useState<any>(null);
-  const [baseForm, setBaseForm] = useState({ name: '', ticketType: 'NORMAL', basePrice: '' });
+  const [baseForm, setBaseForm] = useState({ name: '', ticketType: 'NORMAL', formato: 'FORMAT_2D', basePrice: '' });
 
   useEffect(() => {
     const userRole = localStorage.getItem('rol');
@@ -193,6 +196,7 @@ export default function PreciosAdminPage() {
         id: editingBase ? editingBase.id : null,
         name: baseForm.name,
         ticketType: baseForm.ticketType,
+        formato: baseForm.formato,
         basePrice: parseFloat(baseForm.basePrice),
         isActive: true
       };
@@ -200,7 +204,7 @@ export default function PreciosAdminPage() {
       toast.success('Precio base guardado correctamente', { icon: <CheckCircle2 className="text-green-500" /> });
       setShowBaseForm(false);
       setEditingBase(null);
-      setBaseForm({ name: '', ticketType: 'NORMAL', basePrice: '' });
+      setBaseForm({ name: '', ticketType: 'NORMAL', formato: 'FORMAT_2D', basePrice: '' });
       fetchBasePrices();
     } catch (e) {
       toast.error('Error al guardar precio base');
@@ -306,6 +310,20 @@ export default function PreciosAdminPage() {
                     </select>
                   </div>
                   <div className="space-y-2">
+                    <label className="text-sm font-bold text-zinc-400 uppercase tracking-wider">Formato (Tipo de Sala)</label>
+                    <select 
+                      className="w-full bg-black border border-zinc-800 rounded-2xl px-5 py-4 text-lg font-bold text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all appearance-none cursor-pointer"
+                      value={baseForm.formato}
+                      onChange={e => setBaseForm({...baseForm, formato: e.target.value})}
+                    >
+                      <option value="FORMAT_2D">ESTÁNDAR (2D)</option>
+                      <option value="FORMAT_3D">3D</option>
+                      <option value="VIP">VIP</option>
+                      <option value="IMAX">IMAX</option>
+                      <option value="FORMAT_4DX">4DX</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
                     <label className="text-sm font-bold text-zinc-400 uppercase tracking-wider">Precio Referencial (S/)</label>
                     <div className="relative">
                       <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 w-5 h-5" />
@@ -374,7 +392,7 @@ export default function PreciosAdminPage() {
                   handleSaveLocalPrice={handleSaveLocalPrice} 
                   onEditBase={(base: any) => {
                     setEditingBase(base);
-                    setBaseForm({ name: base.name, ticketType: base.ticketType, basePrice: base.basePrice });
+                    setBaseForm({ name: base.name, ticketType: base.ticketType, formato: base.formato || 'FORMAT_2D', basePrice: base.basePrice });
                     setShowBaseForm(true);
                   }}
                 />

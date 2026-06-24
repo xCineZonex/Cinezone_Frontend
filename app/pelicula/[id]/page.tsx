@@ -89,9 +89,20 @@ export default function PeliculaPage(props: { params: Promise<{ id: string }> })
   }, [selectedSede, params.id]);
 
   const handleBuyTicket = (funcion: any) => {
-    // Iniciamos el temporizador global de 5 minutos
-    useCartStore.getState().startBookingTimer(5);
-    
+    const store = useCartStore.getState();
+    const targetFuncionId = funcion.funcionId || funcion.id;
+    const isSameFuncion = store.funcionId === targetFuncionId;
+    const hasActiveTimer = store.bookingExpiresAt && store.bookingExpiresAt > Date.now();
+
+    if (!isSameFuncion) {
+      // Diferente función: limpiamos asientos y empezamos de cero
+      store.clearCart();
+    }
+
+    if (!isSameFuncion || !hasActiveTimer) {
+      // Iniciamos el temporizador global de 5 minutos solo si es nueva o expiró
+      store.startBookingTimer(5);
+    }
     // Guardamos la info de la función y película para el checkout
     useCartStore.getState().setFuncion(funcion.funcionId || funcion.id, {
       id: movie.id,

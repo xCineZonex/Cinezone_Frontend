@@ -45,8 +45,18 @@ export default function CheckoutEntradasPage() {
         clearInterval(interval);
         setTimeLeft('00:00');
         toast.error('Tiempo expirado');
-        useCartStore.getState().clearCart();
-        router.push('/');
+        
+        // Unlock all seats on backend
+        const unlockPromises = asientos.map(a => 
+          api.delete('/reservas/asientos/unlock', {
+            params: { funcionId, asientoId: a.asientoId }
+          }).catch(console.error)
+        );
+        
+        Promise.all(unlockPromises).finally(() => {
+          useCartStore.getState().clearCart();
+          router.push('/');
+        });
       } else {
         const m = Math.floor(diff / 60000);
         const s = Math.floor((diff % 60000) / 1000);
@@ -130,12 +140,7 @@ export default function CheckoutEntradasPage() {
 
   const isMatched = totalSelected === seatsCount;
 
-  const handleContinue = () => {
-    if (!isMatched) {
-      toast.error(`Debes seleccionar exactamente ${seatsCount} entrada(s). Has seleccionado ${totalSelected}.`);
-      return;
-    }
-    
+  useEffect(() => {
     const finalTickets: any[] = [];
     
     generalTickets.forEach(t => {
@@ -150,7 +155,6 @@ export default function CheckoutEntradasPage() {
       }
     });
 
-    // Añadir beneficios dinámicos seleccionados
     dynamicBenefits.forEach(b => {
       const bId = String(b.id);
       const qty = selectedBenefits[bId] || 0;
@@ -167,6 +171,14 @@ export default function CheckoutEntradasPage() {
     });
 
     setTickets(finalTickets);
+  }, [selectedTickets, selectedBenefits, generalTickets, dynamicBenefits, setTickets]);
+
+  const handleContinue = () => {
+    if (!isMatched) {
+      toast.error(`Debes seleccionar exactamente ${seatsCount} entrada(s). Has seleccionado ${totalSelected}.`);
+      return;
+    }
+    
     if (rol === 'STAFF') {
       router.push('/checkout/pago');
     } else {

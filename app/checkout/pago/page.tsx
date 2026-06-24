@@ -116,13 +116,27 @@ export default function CheckoutPagoPage() {
     if (bookingExpiresAt) {
       const interval = setInterval(() => {
         const now = Date.now();
-        const remaining = Math.max(0, Math.floor((bookingExpiresAt - now) / 1000));
-        setTimeLeft(remaining);
-
+        const remaining = bookingExpiresAt - now;
         if (remaining <= 0) {
           clearInterval(interval);
           setIsExpired(true);
-          clearCart();
+          
+          // Unlock all seats on backend
+          const store = useCartStore.getState();
+          if (store.funcionId) {
+            const unlockPromises = store.asientos.map(a => 
+              api.delete('/reservas/asientos/unlock', {
+                params: { funcionId: store.funcionId, asientoId: a.asientoId }
+              }).catch(console.error)
+            );
+            Promise.all(unlockPromises).finally(() => {
+              store.clearCart();
+            });
+          } else {
+            clearCart();
+          }
+        } else {
+          setTimeLeft(Math.floor(remaining / 1000));
         }
       }, 1000);
       return () => clearInterval(interval);
