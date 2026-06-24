@@ -80,8 +80,12 @@ function PriceRow({ base, sedePrices, isSuperAdmin, activeSedeId, handleSaveLoca
                   <input 
                     type="number"
                     step="0.01"
+                    min="0"
                     value={localPrice}
-                    onChange={(e) => setLocalPrice(Number(e.target.value))}
+                    onChange={(e) => {
+                      const val = Math.max(0, parseFloat(e.target.value) || 0);
+                      setLocalPrice(val);
+                    }}
                     className={`w-32 bg-black border-2 rounded-xl pl-9 pr-4 py-2 font-black text-lg focus:outline-none transition-all ${
                       hasChanged ? 'border-primary/50 text-primary' : 'border-zinc-800 text-white focus:border-primary/30'
                     }`}
@@ -308,9 +312,13 @@ export default function PreciosAdminPage() {
                       <input 
                         type="number" 
                         step="0.01"
+                        min="0"
                         className="w-full bg-black border border-zinc-800 rounded-2xl pl-12 pr-5 py-4 text-lg font-black text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-zinc-600"
                         value={baseForm.basePrice}
-                        onChange={e => setBaseForm({...baseForm, basePrice: e.target.value})}
+                        onChange={e => {
+                          const val = Math.max(0, parseFloat(e.target.value) || 0);
+                          setBaseForm({...baseForm, basePrice: val.toString()})
+                        }}
                         placeholder="25.00"
                       />
                     </div>

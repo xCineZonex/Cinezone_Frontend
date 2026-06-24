@@ -100,40 +100,42 @@ export default function DulceriaStaffPage() {
                 Abrir Caja
               </button>
             ) : (
-              <button 
-                onClick={startSale}
-                className="w-full py-6 bg-primary text-primary-foreground font-black rounded-2xl text-xl flex items-center justify-center gap-3 hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95"
-              >
-                <Popcorn className="w-8 h-8" /> 
-                Iniciar Nueva Venta
-              </button>
-            )}
-            
-            <button 
-              onClick={() => router.push('/staff/validador')}
-              className="w-full py-6 bg-purple-600 text-white font-black rounded-2xl text-xl flex items-center justify-center gap-3 hover:bg-purple-700 transition-all shadow-xl shadow-purple-600/20 hover:scale-[1.02] active:scale-95"
-            >
-              <QrCode className="w-8 h-8" /> 
-              Entregar Compras (QR)
-            </button>
-            
-            <button 
-              onClick={() => setShowVoidModal(true)}
-              className="w-full py-4 bg-orange-500/10 text-orange-500 font-bold rounded-2xl text-lg flex items-center justify-center gap-3 hover:bg-orange-500 hover:text-white transition-all shadow-md active:scale-95 mt-4"
-            >
-              <LockOpen className="w-6 h-6" />
-              Anular Venta (Supervisor)
-            </button>
-            
-            <div className="h-px bg-border my-6"></div>
+              <>
+                <button 
+                  onClick={startSale}
+                  className="w-full py-6 bg-primary text-primary-foreground font-black rounded-2xl text-xl flex items-center justify-center gap-3 hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95"
+                >
+                  <Popcorn className="w-8 h-8" /> 
+                  Iniciar Nueva Venta
+                </button>
+                
+                <button 
+                  onClick={() => router.push('/staff/validador')}
+                  className="w-full py-6 bg-purple-600 text-white font-black rounded-2xl text-xl flex items-center justify-center gap-3 hover:bg-purple-700 transition-all shadow-xl shadow-purple-600/20 hover:scale-[1.02] active:scale-95"
+                >
+                  <QrCode className="w-8 h-8" /> 
+                  Entregar Compras (QR)
+                </button>
+                
+                <button 
+                  onClick={() => setShowVoidModal(true)}
+                  className="w-full py-4 bg-orange-500/10 text-orange-500 font-bold rounded-2xl text-lg flex items-center justify-center gap-3 hover:bg-orange-500 hover:text-white transition-all shadow-md active:scale-95 mt-4"
+                >
+                  <LockOpen className="w-6 h-6" />
+                  Anular Venta (Supervisor)
+                </button>
+                
+                <div className="h-px bg-border my-6"></div>
 
-            <button 
-              onClick={() => setShowCloseModal(true)}
-              className="w-full py-4 border-2 border-destructive text-destructive font-bold rounded-2xl text-lg flex items-center justify-center gap-3 hover:bg-destructive hover:text-destructive-foreground transition-all active:scale-95"
-            >
-              <LockOpen className="w-6 h-6" />
-              Cerrar Turno (Arqueo)
-            </button>
+                <button 
+                  onClick={() => setShowCloseModal(true)}
+                  className="w-full py-4 border-2 border-destructive text-destructive font-bold rounded-2xl text-lg flex items-center justify-center gap-3 hover:bg-destructive hover:text-destructive-foreground transition-all active:scale-95"
+                >
+                  <LockOpen className="w-6 h-6" />
+                  Cerrar Turno (Arqueo)
+                </button>
+              </>
+            )}
           </motion.div>
 
         </div>
