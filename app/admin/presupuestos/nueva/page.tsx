@@ -18,13 +18,17 @@ export default function NuevaSolicitudPresupuestoPage() {
     description: ''
   });
 
-  const { assignedSedes } = useSedeStore();
+  const { assignedSedes, activeSedeId } = useSedeStore();
 
   useEffect(() => {
     // Filtrar la opción 'all' y usar las sedes que le corresponden al usuario (ya calculadas en el layout global)
     const sedesReales = assignedSedes.filter(s => s.id !== 'all');
     setSedes(sedesReales);
-  }, [assignedSedes]);
+    
+    if (activeSedeId && activeSedeId !== 'all') {
+      setFormData(prev => ({ ...prev, sedeId: activeSedeId }));
+    }
+  }, [assignedSedes, activeSedeId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({

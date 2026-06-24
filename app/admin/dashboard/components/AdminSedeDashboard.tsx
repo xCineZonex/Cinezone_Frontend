@@ -17,7 +17,7 @@ const glassTooltipStyle = {
   boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
 };
 
-const cardVariants = {
+const cardVariants: any = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
 };

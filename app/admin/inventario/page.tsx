@@ -32,8 +32,12 @@ interface Movement {
   createdAt: string;
 }
 
+import { useSedeStore } from '@/store/useSedeStore';
+
 export default function InventarioPage() {
+  const { activeSedeId, assignedSedes } = useSedeStore();
   const [products, setProducts] = useState<Product[]>([]);
+  const [sedeStocks, setSedeStocks] = useState<any[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [kardex, setKardex] = useState<Movement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,17 +62,32 @@ export default function InventarioPage() {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [sedes, setSedes] = useState<Sede[]>([]);
   const [newInsumo, setNewInsumo] = useState({ nombre: '', sedeId: '', stock: '' });
 
   useEffect(() => {
     setUserRole(localStorage.getItem('rol'));
     fetchProducts();
-    fetchSedes();
     if (localStorage.getItem('rol') === 'ADMIN_SEDE') {
       fetchSolicitudes();
     }
   }, []);
+
+  useEffect(() => {
+    if (activeSedeId && activeSedeId !== 'all') {
+      fetchSedeStocks(Number(activeSedeId));
+    } else {
+      setSedeStocks([]);
+    }
+  }, [activeSedeId]);
+
+  const fetchSedeStocks = async (sedeId: number) => {
+    try {
+      const res = await api.get(`/admin/inventory/stock/sede/${sedeId}`);
+      setSedeStocks(res.data);
+    } catch (err) {
+      console.error('Error fetching sede stocks:', err);
+    }
+  };
 
   const fetchSolicitudes = async () => {
     try {
@@ -89,29 +108,11 @@ export default function InventarioPage() {
     }
   };
 
-  const fetchSedes = async () => {
-    try {
-      const res = await api.get('/public/sedes');
-      let fetchedSedes = res.data || [];
-      
-      const currentRole = localStorage.getItem('rol');
-      if (currentRole === 'ADMIN_SEDE') {
-        const userRes = await api.get('/users/me');
-        const assignedSedesIds = userRes.data.sedesIds || [];
-        fetchedSedes = fetchedSedes.filter((s: Sede) => assignedSedesIds.includes(s.id));
-      }
-      
-      setSedes(fetchedSedes);
-    } catch (error) {
-      console.error('Error fetching sedes', error);
-    }
-  };
-
   useEffect(() => {
     if (selectedProduct) {
       fetchKardex(selectedProduct.id);
     }
-  }, [selectedProduct]);
+  }, [selectedProduct, activeSedeId]);
 
   const fetchProducts = async () => {
     try {
@@ -127,7 +128,11 @@ export default function InventarioPage() {
   const fetchKardex = async (productId: number) => {
     try {
       const res = await api.get(`/admin/inventory/${productId}/kardex`);
-      setKardex(res.data);
+      if (activeSedeId && activeSedeId !== 'all') {
+        setKardex(res.data.filter((k: any) => k.sedeId === Number(activeSedeId)));
+      } else {
+        setKardex(res.data);
+      }
     } catch (err) {
       toast.error('Error al cargar movimientos (Kardex)');
     }
@@ -135,15 +140,17 @@ export default function InventarioPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedProduct) return;
+    if (!selectedProduct || !activeSedeId || activeSedeId === 'all') return;
     
     if (!cantidad || Number(cantidad) <= 0) {
       toast.error('Ingrese una cantidad válida mayor a 0');
       return;
     }
 
-    if (type === 'SALIDA' && selectedProduct.stock < Number(cantidad)) {
-      toast.error('Stock insuficiente para esta salida');
+    const currentSedeStock = sedeStocks.find(s => s.product.id === selectedProduct.id)?.stock || 0;
+
+    if (type === 'SALIDA' && currentSedeStock < Number(cantidad)) {
+      toast.error('Stock insuficiente en la sede para esta salida');
       return;
     }
 
@@ -151,6 +158,7 @@ export default function InventarioPage() {
     try {
       await api.post('/admin/inventory/movement', {
         productId: selectedProduct.id,
+        sedeId: Number(activeSedeId),
         type,
         cantidad: Number(cantidad),
         motivo
@@ -162,7 +170,7 @@ export default function InventarioPage() {
       setMotivo('');
       
       // Reload data
-      fetchProducts();
+      fetchSedeStocks(Number(activeSedeId));
       fetchKardex(selectedProduct.id);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Error al registrar movimiento');
@@ -235,7 +243,14 @@ export default function InventarioPage() {
     }
   };
 
-  const filteredProducts = products.filter(p => 
+  const displayedProducts = activeSedeId === 'all'
+    ? products
+    : products.map(p => {
+        const sStock = sedeStocks.find(s => s.product.id === p.id);
+        return { ...p, stock: sStock ? sStock.stock : 0 };
+      });
+
+  const filteredProducts = displayedProducts.filter(p => 
     p.nombre.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -247,12 +262,12 @@ export default function InventarioPage() {
             Gestión de Inventario
           </h1>
           <p className="text-muted-foreground mt-2 font-medium">
-            Control total sobre productos, stock y movimientos de sede.
+            Control total sobre insumos, stock y movimientos de sede.
           </p>
         </div>
         
         <div className="flex gap-4">
-          {userRole === 'ADMIN_SEDE' && (
+          {activeSedeId !== 'all' && (
             <div className="flex bg-secondary rounded-xl p-1">
               <button
                 onClick={() => setActiveTab('INVENTARIO')}
@@ -271,12 +286,14 @@ export default function InventarioPage() {
               </button>
             </div>
           )}
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2"
-          >
-            <Plus className="w-5 h-5" /> Nuevo Insumo
-          </button>
+          {userRole === 'SUPER_ADMIN' && activeSedeId === 'all' && (
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" /> Nuevo Insumo Global
+            </button>
+          )}
         </div>
       </div>
 
@@ -318,7 +335,7 @@ export default function InventarioPage() {
                   className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-primary"
                 >
                   <option value="">Ninguna (Global)</option>
-                  {sedes.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+                  {assignedSedes.filter(s => s.id !== 'all').map((s: any) => <option key={s.id} value={s.id}>{s.nombre}</option>)}
                 </select>
               </div>
               {newInsumo.sedeId && (
@@ -424,7 +441,7 @@ export default function InventarioPage() {
                   className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-primary"
                 >
                   <option value="">Ninguna (Global)</option>
-                  {sedes.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+                  {assignedSedes.filter(s => s.id !== 'all').map((s: any) => <option key={s.id} value={s.id}>{s.nombre}</option>)}
                 </select>
               </div>
               {newInsumo.sedeId && (
@@ -517,65 +534,72 @@ export default function InventarioPage() {
 
 
               {/* Nuevo Movimiento */}
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-card border border-border rounded-3xl p-6 shadow-sm"
-              >
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-primary" /> Nuevo Movimiento
-                </h2>
-                
-                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                  <div>
-                    <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase">Tipo</label>
-                    <select
-                      value={type}
-                      onChange={(e) => setType(e.target.value as 'ENTRADA' | 'SALIDA')}
-                      className="w-full bg-secondary rounded-xl px-4 py-3 outline-none"
-                    >
-                      <option value="ENTRADA">Entrada (Sumar)</option>
-                      <option value="SALIDA">Salida (Restar)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase">Cantidad</label>
-                    <input
-                      type="number"
-                      min="1"
-                      required
-                      value={cantidad}
-                      onChange={(e) => setCantidad(e.target.value)}
-                      className="w-full bg-secondary rounded-xl px-4 py-3 outline-none"
-                      placeholder="0"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase">Motivo / Justificación</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        required
-                        value={motivo}
-                        onChange={(e) => setMotivo(e.target.value)}
-                        className="w-full bg-secondary rounded-xl px-4 py-3 outline-none flex-1"
-                        placeholder="Ej. Compra proveedor, Merma, etc."
-                      />
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className={`px-6 py-3 rounded-xl font-bold transition-all ${
-                          type === 'ENTRADA' 
-                            ? 'bg-green-500 hover:bg-green-600 text-white' 
-                            : 'bg-red-500 hover:bg-red-600 text-white'
-                        }`}
+              {activeSedeId !== 'all' ? (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-card border border-border rounded-3xl p-6 shadow-sm"
+                >
+                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <Plus className="w-5 h-5 text-primary" /> Nuevo Movimiento
+                  </h2>
+                  
+                  <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div>
+                      <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase">Tipo</label>
+                      <select
+                        value={type}
+                        onChange={(e) => setType(e.target.value as 'ENTRADA' | 'SALIDA')}
+                        className="w-full bg-secondary rounded-xl px-4 py-3 outline-none"
                       >
-                        {isSubmitting ? '...' : 'Registrar'}
-                      </button>
+                        <option value="ENTRADA">Entrada (Sumar)</option>
+                        <option value="SALIDA">Salida (Restar)</option>
+                      </select>
                     </div>
-                  </div>
-                </form>
-              </motion.div>
+                    <div>
+                      <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase">Cantidad</label>
+                      <input
+                        type="number"
+                        min="1"
+                        required
+                        value={cantidad}
+                        onChange={(e) => setCantidad(e.target.value)}
+                        className="w-full bg-secondary rounded-xl px-4 py-3 outline-none"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase">Motivo / Justificación</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          required
+                          value={motivo}
+                          onChange={(e) => setMotivo(e.target.value)}
+                          className="w-full bg-secondary rounded-xl px-4 py-3 outline-none flex-1"
+                          placeholder="Ej. Compra proveedor, Merma, etc."
+                        />
+                        <button
+                          type="submit"
+                          disabled={isSubmitting}
+                          className={`px-6 py-3 rounded-xl font-bold transition-all ${
+                            type === 'ENTRADA' 
+                              ? 'bg-green-500 hover:bg-green-600 text-white' 
+                              : 'bg-red-500 hover:bg-red-600 text-white'
+                          }`}
+                        >
+                          {isSubmitting ? '...' : 'Registrar'}
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </motion.div>
+              ) : (
+                <div className="bg-card border border-border rounded-3xl p-6 shadow-sm text-center">
+                  <p className="text-muted-foreground">Seleccione una sede específica en el contexto de trabajo para registrar movimientos.</p>
+                </div>
+              )}
+
 
               {/* Historial (Kardex) */}
               <motion.div 

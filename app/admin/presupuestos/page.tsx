@@ -6,12 +6,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Building2, DollarSign, CheckCircle, XCircle, Search, Clock, MessageSquare, AlertCircle } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { useSedeStore } from '@/store/useSedeStore';
 
 export default function PresupuestosPage() {
+  const { activeSedeId } = useSedeStore();
   const [presupuestos, setPresupuestos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [sedes, setSedes] = useState<any[]>([]);
-  const [filtroSede, setFiltroSede] = useState<string>('ALL');
   const [rol, setRol] = useState<string>('');
   
   // Modal state
@@ -45,9 +46,9 @@ export default function PresupuestosPage() {
     return sede ? sede.nombre : `Sede #${sedeId}`;
   };
 
-  const filteredPresupuestos = filtroSede === 'ALL' 
+  const filteredPresupuestos = (!activeSedeId || activeSedeId === 'all')
     ? presupuestos 
-    : presupuestos.filter(p => p.sedeId.toString() === filtroSede);
+    : presupuestos.filter(p => p.sedeId.toString() === activeSedeId);
 
   const handleRespond = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,19 +104,6 @@ export default function PresupuestosPage() {
               </button>
             </Link>
           )}
-          <div className="flex items-center gap-3 bg-zinc-900 border border-border rounded-xl p-2 shadow-sm">
-            <div className="pl-3 text-muted-foreground"><Search className="w-4 h-4" /></div>
-            <select
-              value={filtroSede}
-              onChange={(e) => setFiltroSede(e.target.value)}
-              className="bg-zinc-900 border-none text-sm font-semibold text-white focus:ring-0 outline-none pr-4 cursor-pointer"
-            >
-              <option value="ALL" className="bg-zinc-900 text-white">Todas las Sedes</option>
-              {sedes.map(sede => (
-                <option key={sede.id} value={sede.id} className="bg-zinc-900 text-white">{sede.nombre}</option>
-              ))}
-            </select>
-          </div>
         </div>
       </div>
 

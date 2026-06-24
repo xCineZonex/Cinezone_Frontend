@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import api from '@/lib/api';
+import { useSedeStore } from '@/store/useSedeStore';
 import {
   ArrowLeft, Save, Trash2, Monitor,
   ChevronDown, ChevronUp, Settings
@@ -41,12 +42,10 @@ export default function SeatEditorPage() {
   const [step, setStep] = useState<'config' | 'draw'>('config');
 
   // Config step
-  const [sedes, setSedes] = useState<any[]>([]);
-  const [loadingSedes, setLoadingSedes] = useState(false);
-  const [sedesLoaded, setSedesLoaded] = useState(false);
+  const { activeSedeId, assignedSedes } = useSedeStore();
   const [form, setForm] = useState({
     nombre: '',
-    cinemaId: '',
+    cinemaId: activeSedeId !== 'all' ? activeSedeId : '',
     gridRows: 10,
     gridCols: 15,
   });
@@ -58,26 +57,11 @@ export default function SeatEditorPage() {
   const [saving, setSaving] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
 
-  const loadSedes = async () => {
-    if (sedesLoaded) return;
-    setLoadingSedes(true);
-    try {
-      const userRes = await api.get('/users/me');
-      const currentUser = userRes.data;
-
-      const res = await api.get('/public/sedes');
-      let allSedes = res.data;
-      if (currentUser.rol === 'ADMIN_SEDE' && currentUser.sedesIds) {
-        allSedes = allSedes.filter((s: any) => currentUser.sedesIds.includes(s.id));
-      }
-      setSedes(allSedes);
-      setSedesLoaded(true);
-    } catch {
-      toast.error('Error al cargar sedes');
-    } finally {
-      setLoadingSedes(false);
+  useEffect(() => {
+    if (activeSedeId !== 'all') {
+      setForm(prev => ({ ...prev, cinemaId: activeSedeId }));
     }
-  };
+  }, [activeSedeId]);
 
   const initGrid = () => {
     if (!form.nombre || !form.cinemaId) {
@@ -189,17 +173,19 @@ export default function SeatEditorPage() {
           <div>
             <label className="block text-sm font-semibold text-foreground mb-2">Sede</label>
             <select
-              className="w-full bg-secondary border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full bg-secondary border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
               value={form.cinemaId}
               onChange={e => setForm({ ...form, cinemaId: e.target.value })}
-              onFocus={loadSedes}
+              disabled={activeSedeId !== 'all'}
             >
               <option value="">-- Selecciona una sede --</option>
-              {loadingSedes && <option disabled>Cargando...</option>}
-              {sedes.map(s => (
+              {assignedSedes.filter(s => s.id !== 'all').map(s => (
                 <option key={s.id} value={s.id}>{s.nombre} · {s.ciudad}</option>
               ))}
             </select>
+            {activeSedeId !== 'all' && (
+              <p className="text-xs text-muted-foreground mt-2">La sede está fijada por tu Contexto de Trabajo actual.</p>
+            )}
           </div>
 
           {/* Dimensiones */}

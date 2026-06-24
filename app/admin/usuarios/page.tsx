@@ -6,8 +6,10 @@ import { motion } from 'framer-motion';
 import { Plus, User, Trash2, Edit } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { useSedeStore } from '@/store/useSedeStore';
 
 export default function AdminUsuariosPage() {
+  const { activeSedeId } = useSedeStore();
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -54,6 +56,28 @@ export default function AdminUsuariosPage() {
     return <div className="p-8 text-center text-muted-foreground animate-pulse">Cargando usuarios...</div>;
   }
 
+  // Filtrado final: por rol + por contexto de trabajo (activeSedeId)
+  const filteredUsers = usuarios.filter((user) => {
+    // 1. Reglas de permisos (un ADMIN_SEDE no puede ver SUPER_ADMINs, ni a otros ADMIN_SEDE salvo él mismo)
+    if (currentUser?.rol === 'ADMIN_SEDE') {
+      if (user.rol === 'SUPER_ADMIN') return false;
+      if (user.rol === 'ADMIN_SEDE' && user.id !== currentUser.id) return false;
+    }
+
+    // 2. Filtro por Contexto de Trabajo
+    if (activeSedeId && activeSedeId !== 'all') {
+      // Si el usuario no tiene la sede asignada, no se muestra en este contexto
+      if (!user.sedesIds?.includes(Number(activeSedeId))) {
+        // Excepción: los SUPER_ADMIN se ven en todos lados (siempre que los permisos lo permitan)
+        if (user.rol !== 'SUPER_ADMIN') {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  });
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
       <div className="flex items-center justify-between">
@@ -82,21 +106,13 @@ export default function AdminUsuariosPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {usuarios.length === 0 ? (
+              {filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground italic">
-                    No hay usuarios registrados.
+                    No hay usuarios registrados en este contexto.
                   </td>
                 </tr>
-              ) : usuarios
-                  .filter((user) => {
-                    if (currentUser?.rol === 'ADMIN_SEDE') {
-                      if (user.rol === 'SUPER_ADMIN') return false;
-                      if (user.rol === 'ADMIN_SEDE' && user.id !== currentUser.id) return false;
-                    }
-                    return true;
-                  })
-                  .map((user) => (
+              ) : filteredUsers.map((user) => (
                 <motion.tr 
                   key={user.id}
                   initial={{ opacity: 0 }}

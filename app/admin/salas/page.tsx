@@ -6,43 +6,27 @@ import { motion } from 'framer-motion';
 import { Plus, Edit2, Sofa, Building2, CheckCircle, XCircle, Users, Wrench } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { useSedeStore } from '@/store/useSedeStore';
 
 export default function AdminSalasPage() {
-  const [sedes, setSedes] = useState<any[]>([]);
+  const { activeSedeId, assignedSedes } = useSedeStore();
   const [salas, setSalas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSede, setSelectedSede] = useState<string>('');
 
   useEffect(() => {
-    fetchSedes();
-  }, []);
-
-  useEffect(() => {
-    if (selectedSede) fetchSalas(Number(selectedSede));
-    else fetchAllSalas();
-  }, [selectedSede]);
-
-  const fetchSedes = async () => {
-    try {
-      const userRes = await api.get('/users/me');
-      const currentUser = userRes.data;
-
-      const res = await api.get('/public/sedes');
-      let allSedes = res.data;
-      if (currentUser.rol === 'ADMIN_SEDE' && currentUser.sedesIds) {
-        allSedes = allSedes.filter((s: any) => currentUser.sedesIds.includes(s.id));
-      }
-      setSedes(allSedes);
-    } catch {
-      toast.error('Error al cargar sedes');
+    if (activeSedeId && activeSedeId !== 'all') {
+      fetchSalas(Number(activeSedeId));
+    } else if (activeSedeId === 'all' && assignedSedes.length > 0) {
+      fetchAllSalas();
     }
-  };
+  }, [activeSedeId, assignedSedes]);
 
   const fetchSalas = async (cinemaId: number) => {
     setLoading(true);
     try {
       const res = await api.get(`/admin/catalogo/sedes/${cinemaId}/salas`);
-      setSalas(res.data);
+      const sedeInfo = assignedSedes.find(s => s.id.toString() === cinemaId.toString());
+      setSalas(res.data.map((s: any) => ({ ...s, sedeNombre: sedeInfo?.nombre })));
     } catch {
       toast.error('Error al cargar salas');
     } finally {
@@ -53,18 +37,8 @@ export default function AdminSalasPage() {
   const fetchAllSalas = async () => {
     setLoading(true);
     try {
-      const userRes = await api.get('/users/me');
-      const currentUser = userRes.data;
-
-      // Trae salas de todas las sedes
-      const sedesRes = await api.get('/public/sedes');
-      let allSedes = sedesRes.data;
-      if (currentUser.rol === 'ADMIN_SEDE' && currentUser.sedesIds) {
-        allSedes = allSedes.filter((s: any) => currentUser.sedesIds.includes(s.id));
-      }
-
       const allSalas: any[] = [];
-      for (const sede of allSedes) {
+      for (const sede of assignedSedes.filter(s => s.id !== 'all')) {
         const res = await api.get(`/admin/catalogo/sedes/${sede.id}/salas`);
         allSalas.push(...res.data.map((s: any) => ({ ...s, sedeNombre: sede.nombre })));
       }
@@ -80,7 +54,7 @@ export default function AdminSalasPage() {
     try {
       await api.patch(`/admin/catalogo/salas/${sala.id}/mantenimiento?activar=${sala.activa}`);
       toast.success(sala.activa ? 'Sala en mantenimiento' : 'Sala activada');
-      selectedSede ? fetchSalas(Number(selectedSede)) : fetchAllSalas();
+      activeSedeId !== 'all' ? fetchSalas(Number(activeSedeId)) : fetchAllSalas();
     } catch {
       toast.error('Error al cambiar estado');
     }
@@ -105,20 +79,12 @@ export default function AdminSalasPage() {
         </Link>
       </div>
 
-      {/* Filtro por sede */}
       <div className="flex items-center gap-4">
-        <label className="text-sm font-semibold text-muted-foreground">Filtrar por sede:</label>
-        <select
-          className="bg-secondary border border-border rounded-xl px-4 py-2 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          value={selectedSede}
-          onChange={e => setSelectedSede(e.target.value)}
-        >
-          <option value="">Todas las sedes</option>
-          {sedes.map(s => (
-            <option key={s.id} value={s.id}>{s.nombre} · {s.ciudad}</option>
-          ))}
-        </select>
-        <span className="text-sm text-muted-foreground">
+        <span className="text-sm font-semibold text-muted-foreground">Sede Activa:</span>
+        <span className="px-3 py-1.5 bg-secondary text-secondary-foreground font-bold rounded-lg text-sm">
+          {activeSedeId === 'all' ? 'Todas las Sedes' : assignedSedes.find(s => s.id.toString() === activeSedeId)?.nombre || 'Seleccione una sede'}
+        </span>
+        <span className="text-sm text-muted-foreground ml-auto">
           {salas.length} sala{salas.length !== 1 ? 's' : ''} encontrada{salas.length !== 1 ? 's' : ''}
         </span>
       </div>

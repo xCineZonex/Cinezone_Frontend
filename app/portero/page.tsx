@@ -22,10 +22,15 @@ interface BookingData {
   id: number;
   codigoUnico: string;
   estado: string;
+  bookingStatus?: string;
   observaciones?: string;
   pelicula?: string;
+  movieTitle?: string;
   sala?: string;
+  auditoriumName?: string;
   fecha?: string;
+  showtimeDate?: string;
+  fechaHora?: string;
   funcion?: {
     pelicula?: { titulo: string };
     sala?: { nombre: string };

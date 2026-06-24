@@ -7,9 +7,11 @@ import { ChevronLeft, Save, User, Mail, IdCard, Lock, Phone, Briefcase, KeyRound
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import api from '@/lib/api';
+import { useSedeStore } from '@/store/useSedeStore';
 
 export default function NuevoStaffPage() {
   const router = useRouter();
+  const { activeSedeId } = useSedeStore();
   const [loading, setLoading] = useState(false);
   const [sedes, setSedes] = useState<any[]>([]);
   const [formData, setFormData] = useState({
@@ -27,6 +29,11 @@ export default function NuevoStaffPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
+    // Si hay una sede activa específica, la preseleccionamos
+    if (activeSedeId && activeSedeId !== 'all') {
+      setFormData(prev => ({ ...prev, sedesIds: [Number(activeSedeId)] }));
+    }
+
     const fetchSedesAndUser = async () => {
       try {
         const userRes = await api.get('/users/me');
@@ -43,7 +50,7 @@ export default function NuevoStaffPage() {
       }
     };
     fetchSedesAndUser();
-  }, []);
+  }, [activeSedeId]);
 
   const handleSedeToggle = (sedeId: number) => {
     setFormData(prev => {

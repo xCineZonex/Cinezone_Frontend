@@ -6,20 +6,19 @@ import { motion } from 'framer-motion';
 import { Plus, Edit, Image as ImageIcon, CheckCircle, XCircle } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { useSedeStore } from '@/store/useSedeStore';
 import AdminSedePeliculasPage from './AdminSedePeliculasPage';
 
 export default function AdminPeliculasPage() {
+  const { activeSedeId } = useSedeStore();
   const [peliculas, setPeliculas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const role = localStorage.getItem('rol');
-    setUserRole(role);
-    if (role !== 'ADMIN_SEDE') {
+    if (!activeSedeId || activeSedeId === 'all') {
       fetchPeliculas();
     }
-  }, []);
+  }, [activeSedeId]);
 
   const fetchPeliculas = async () => {
     try {
@@ -47,7 +46,7 @@ export default function AdminPeliculasPage() {
     }
   };
 
-  if (userRole === 'ADMIN_SEDE') {
+  if (activeSedeId && activeSedeId !== 'all') {
     return <AdminSedePeliculasPage />;
   }
 

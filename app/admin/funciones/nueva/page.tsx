@@ -8,17 +8,19 @@ import { toast } from 'sonner';
 import api from '@/lib/api';
 import GrillaProgramacion from '@/components/admin/GrillaProgramacion';
 
+import { useSedeStore } from '@/store/useSedeStore';
+
 export default function NuevaFuncionPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   
+  const { activeSedeId, assignedSedes } = useSedeStore();
   const [peliculas, setPeliculas] = useState<any[]>([]);
-  const [sedes, setSedes] = useState<any[]>([]);
   const [salas, setSalas] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
     movieId: '',
-    cinemaId: '',
+    cinemaId: activeSedeId !== 'all' ? activeSedeId : '',
     auditoriumId: '',
     fechaHora: '',
     idioma: 'ESPANOL',
@@ -26,22 +28,17 @@ export default function NuevaFuncionPage() {
   });
 
   useEffect(() => {
-    // Cargar películas y sedes iniciales
+    if (activeSedeId !== 'all') {
+      setFormData(prev => ({ ...prev, cinemaId: activeSedeId }));
+    }
+  }, [activeSedeId]);
+
+  useEffect(() => {
+    // Cargar películas iniciales
     const fetchInitialData = async () => {
       try {
-        const [movRes, sedesRes, meRes] = await Promise.all([
-          api.get('/admin/catalogo/peliculas'),
-          api.get('/public/sedes'),
-          api.get('/users/me').catch(() => ({ data: null }))
-        ]);
+        const movRes = await api.get('/admin/catalogo/peliculas');
         setPeliculas(movRes.data);
-        
-        let availableSedes = sedesRes.data || [];
-        const user = meRes.data;
-        if (user && user.rol !== 'SUPER_ADMIN' && user.sedesIds) {
-          availableSedes = availableSedes.filter((s: any) => user.sedesIds.includes(s.id));
-        }
-        setSedes(availableSedes);
       } catch (error) {
         console.error('Error fetching initial data:', error);
       }
@@ -158,17 +155,21 @@ export default function NuevaFuncionPage() {
                 name="cinemaId"
                 required
                 value={formData.cinemaId}
+                disabled={activeSedeId !== 'all'}
                 onChange={(e) => {
                   handleChange(e);
                   setFormData(prev => ({ ...prev, auditoriumId: '' })); // Reset sala
                 }}
-                className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all disabled:opacity-50"
               >
                 <option value="">Selecciona una sede...</option>
-                {sedes.map(s => (
+                {assignedSedes.filter(s => s.id !== 'all').map(s => (
                   <option key={s.id} value={s.id}>{s.nombre}</option>
                 ))}
               </select>
+              {activeSedeId !== 'all' && (
+                <p className="text-xs text-muted-foreground mt-2">La sede está fijada por tu Contexto de Trabajo actual.</p>
+              )}
             </div>
 
             <div className="space-y-2">

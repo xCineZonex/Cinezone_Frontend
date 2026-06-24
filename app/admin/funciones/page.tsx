@@ -6,11 +6,11 @@ import { motion } from 'framer-motion';
 import { Plus, Edit, CalendarDays, CheckCircle, XCircle } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { useSedeStore } from '@/store/useSedeStore';
 
 export default function AdminFuncionesPage() {
+  const { activeSedeId, assignedSedes } = useSedeStore();
   const [funciones, setFunciones] = useState<any[]>([]);
-  const [sedes, setSedes] = useState<any[]>([]);
-  const [selectedSede, setSelectedSede] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,15 +19,8 @@ export default function AdminFuncionesPage() {
 
   const fetchData = async () => {
     try {
-      const [funcRes, sedesRes] = await Promise.all([
-        api.get('/admin/catalogo/funciones'),
-        api.get('/public/sedes')
-      ]);
+      const funcRes = await api.get('/admin/catalogo/funciones');
       setFunciones(funcRes.data);
-      setSedes(sedesRes.data);
-      if (sedesRes.data.length > 0) {
-        setSelectedSede(sedesRes.data[0].id.toString());
-      }
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Error al cargar datos');
@@ -36,7 +29,9 @@ export default function AdminFuncionesPage() {
     }
   };
 
-  const filteredFunciones = funciones.filter(f => f.cinema?.id?.toString() === selectedSede);
+  const filteredFunciones = activeSedeId === 'all' 
+    ? funciones 
+    : funciones.filter(f => f.cinema?.id?.toString() === activeSedeId);
 
   if (loading) {
     return <div className="p-8 text-center text-muted-foreground animate-pulse">Cargando funciones...</div>;
@@ -50,21 +45,22 @@ export default function AdminFuncionesPage() {
           <p className="text-muted-foreground">Gestiona los horarios de proyección de las películas</p>
         </div>
         <div className="flex items-center gap-4">
-          <select
-            value={selectedSede}
-            onChange={(e) => setSelectedSede(e.target.value)}
-            className="px-4 py-2 bg-background border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-          >
-            {sedes.map(s => (
-              <option key={s.id} value={s.id}>{s.nombre}</option>
-            ))}
-          </select>
           <Link href="/admin/funciones/nueva">
             <button className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg transition-colors shadow-lg shadow-primary/20">
               <Plus className="w-5 h-5" /> Programar Función
             </button>
           </Link>
         </div>
+      </div>
+      
+      <div className="flex items-center gap-4">
+        <span className="text-sm font-semibold text-muted-foreground">Sede Activa:</span>
+        <span className="px-3 py-1.5 bg-secondary text-secondary-foreground font-bold rounded-lg text-sm">
+          {activeSedeId === 'all' ? 'Todas las Sedes' : assignedSedes.find(s => s.id.toString() === activeSedeId)?.nombre || 'Seleccione una sede'}
+        </span>
+        <span className="text-sm text-muted-foreground ml-auto">
+          {filteredFunciones.length} función{filteredFunciones.length !== 1 ? 'es' : ''} encontrada{filteredFunciones.length !== 1 ? 's' : ''}
+        </span>
       </div>
 
       <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">

@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { Plus, Edit2, Popcorn, CheckCircle, XCircle, Trash2, Package, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/api';
+import { useSedeStore } from '@/store/useSedeStore';
 
 export default function DulceriaPage() {
+  const { activeSedeId } = useSedeStore();
   const [productos, setProductos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [userSedeId, setUserSedeId] = useState<number | null>(null);
   const [sedeStocks, setSedeStocks] = useState<any[]>([]);
 
   // Ensamblar Combo
@@ -30,17 +31,16 @@ export default function DulceriaPage() {
   useEffect(() => {
     const role = localStorage.getItem('rol');
     setUserRole(role);
-    if (role === 'ADMIN_SEDE') {
-      api.get('/users/me').then(res => {
-         const sedes = res.data.sedesIds || [];
-         if (sedes.length > 0) {
-            setUserSedeId(sedes[0]);
-            fetchSedeStocks(sedes[0]);
-         }
-      }).catch(err => console.error(err));
-    }
     fetchProductos();
   }, []);
+
+  useEffect(() => {
+    if (activeSedeId && activeSedeId !== 'all') {
+      fetchSedeStocks(Number(activeSedeId));
+    } else {
+      setSedeStocks([]);
+    }
+  }, [activeSedeId]);
 
   const fetchSedeStocks = async (sedeId: number) => {
      try {
@@ -52,10 +52,10 @@ export default function DulceriaPage() {
   };
 
   const toggleSedeStock = async (productId: number) => {
-     if (!userSedeId) return;
+     if (!activeSedeId || activeSedeId === 'all') return;
      try {
-        await api.patch(`/admin/inventory/stock/${productId}/sede/${userSedeId}/toggle`);
-        fetchSedeStocks(userSedeId);
+        await api.patch(`/admin/inventory/stock/${productId}/sede/${activeSedeId}/toggle`);
+        fetchSedeStocks(Number(activeSedeId));
      } catch (err) {
         console.error('Error toggling sede stock:', err);
      }
@@ -83,8 +83,8 @@ export default function DulceriaPage() {
 
   const handleEnsamblar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCombo || !userSedeId) {
-      toast.error('Seleccione un combo y asegúrese de estar asignado a una sede');
+    if (!selectedCombo || !activeSedeId || activeSedeId === 'all') {
+      toast.error('Seleccione un combo y asegúrese de tener una sede activa seleccionada');
       return;
     }
     
@@ -95,12 +95,12 @@ export default function DulceriaPage() {
 
     setIsAssembling(true);
     try {
-      await api.post(`/admin/catalogo/productos/${selectedCombo.id}/generar-stock?stockGenerado=${ensamblajeCantidad}&sedeId=${userSedeId}`);
+      await api.post(`/admin/catalogo/productos/${selectedCombo.id}/generar-stock?stockGenerado=${ensamblajeCantidad}&sedeId=${activeSedeId}`);
       toast.success('Combo ensamblado y stock actualizado');
       setShowEnsamblarModal(false);
       setEnsamblajeCantidad('');
       fetchProductos();
-      fetchSedeStocks(userSedeId);
+      fetchSedeStocks(Number(activeSedeId));
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Error al ensamblar combo');
     } finally {
@@ -110,8 +110,8 @@ export default function DulceriaPage() {
 
   const handleSetPrice = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPriceCombo || !userSedeId) {
-      toast.error('Asegúrese de estar asignado a una sede');
+    if (!selectedPriceCombo || !activeSedeId || activeSedeId === 'all') {
+      toast.error('Asegúrese de tener una sede activa seleccionada');
       return;
     }
 
@@ -122,11 +122,11 @@ export default function DulceriaPage() {
 
     setIsSettingPrice(true);
     try {
-      await api.patch(`/admin/inventory/stock/${selectedPriceCombo.id}/sede/${userSedeId}/precio?precioLocal=${precioLocal}`);
+      await api.patch(`/admin/inventory/stock/${selectedPriceCombo.id}/sede/${activeSedeId}/precio?precioLocal=${precioLocal}`);
       toast.success('Precio local actualizado');
       setShowPriceModal(false);
       setPrecioLocal('');
-      fetchSedeStocks(userSedeId);
+      fetchSedeStocks(Number(activeSedeId));
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Error al actualizar precio local');
     } finally {
@@ -197,7 +197,7 @@ export default function DulceriaPage() {
                       )}
                     </td>
                     <td className="p-4 text-center font-semibold">
-                      {userRole === 'ADMIN_SEDE' ? (() => {
+                      {activeSedeId !== 'all' ? (() => {
                         const stock = sedeStocks.find(s => s.product.id === prod.id);
                         const localPrice = stock?.precioLocal;
                         return (
@@ -224,7 +224,7 @@ export default function DulceriaPage() {
                       {prod.stock || 'Ilimitado'}
                     </td>
                     <td className="p-4 text-center">
-                      {userRole === 'ADMIN_SEDE' ? (() => {
+                      {activeSedeId !== 'all' ? (() => {
                          const stock = sedeStocks.find(s => s.product.id === prod.id);
                          const isSedeActive = stock ? stock.isActive : true;
                          return isSedeActive ? (
@@ -248,7 +248,7 @@ export default function DulceriaPage() {
                     </td>
                     <td className="p-4 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        {userRole === 'SUPER_ADMIN' ? (
+                        {activeSedeId === 'all' && userRole === 'SUPER_ADMIN' ? (
                           <>
                             <button 
                               onClick={() => toggleEstado(prod.id, prod.disponible)}
@@ -280,7 +280,7 @@ export default function DulceriaPage() {
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </>
-                        ) : userRole === 'ADMIN_SEDE' ? (
+                        ) : activeSedeId !== 'all' ? (
                           <div className="flex flex-col gap-2 w-full">
                             <button 
                               onClick={() => toggleSedeStock(prod.id)}
@@ -333,7 +333,7 @@ export default function DulceriaPage() {
                             </button>
                           </div>
                         ) : (
-                          <span className="text-xs text-muted-foreground italic">Solo lectura</span>
+                          <span className="text-xs text-muted-foreground italic">Seleccione una sede específica para ver acciones locales</span>
                         )}
                       </div>
                     </td>
