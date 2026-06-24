@@ -45,6 +45,7 @@ export default function SeatEditorPage() {
   const { activeSedeId, assignedSedes } = useSedeStore();
   const [form, setForm] = useState({
     nombre: '',
+    tipo: 'FORMAT_2D',
     cinemaId: activeSedeId !== 'all' ? activeSedeId : '',
     gridRows: 10,
     gridCols: 15,
@@ -125,6 +126,7 @@ export default function SeatEditorPage() {
     try {
       await api.post('/admin/catalogo/salas/layout', {
         nombre: form.nombre,
+        tipo: form.tipo,
         cinemaId: Number(form.cinemaId),
         gridRows: form.gridRows,
         gridCols: form.gridCols,
@@ -157,16 +159,35 @@ export default function SeatEditorPage() {
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-8 space-y-6">
-          {/* Nombre */}
-          <div>
-            <label className="block text-sm font-semibold text-foreground mb-2">Nombre de la sala</label>
-            <input
-              type="text"
-              placeholder="Ej. Sala Premium 1, IMAX Norte..."
-              className="w-full bg-secondary border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              value={form.nombre}
-              onChange={e => setForm({ ...form, nombre: e.target.value })}
-            />
+          {/* Configuración */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Nombre */}
+            <div>
+              <label className="block text-sm font-semibold text-foreground mb-2">Nombre de la Sala</label>
+              <input
+                type="text"
+                placeholder="Ej. Sala Premium 1, IMAX Norte..."
+                className="w-full bg-secondary border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                value={form.nombre}
+                onChange={e => setForm({ ...form, nombre: e.target.value })}
+              />
+            </div>
+
+            {/* Tipo */}
+            <div>
+              <label className="block text-sm font-semibold text-foreground mb-2">Tipo de Sala (Formato)</label>
+              <select
+                className="w-full bg-secondary border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer"
+                value={form.tipo}
+                onChange={e => setForm({ ...form, tipo: e.target.value })}
+              >
+                <option value="FORMAT_2D">REGULAR (2D)</option>
+                <option value="FORMAT_3D">3D</option>
+                <option value="VIP">VIP</option>
+                <option value="IMAX">IMAX</option>
+                <option value="FORMAT_4DX">4DX</option>
+              </select>
+            </div>
           </div>
 
           {/* Sede */}

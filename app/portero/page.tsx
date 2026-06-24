@@ -19,21 +19,23 @@ interface TicketData {
 }
 
 interface BookingData {
-  id: number;
-  codigoUnico: string;
-  estado: string;
+  id?: string;
+  bookingId?: string;
+  codigoUnico?: string;
+  estado?: string;
   bookingStatus?: string;
   observaciones?: string;
   pelicula?: string;
   movieTitle?: string;
   sala?: string;
   auditoriumName?: string;
+  tipoSala?: string;
   fecha?: string;
   showtimeDate?: string;
   fechaHora?: string;
   funcion?: {
     pelicula?: { titulo: string };
-    sala?: { nombre: string };
+    sala?: { nombre: string, tipo?: string };
     horarioInicio: string;
   };
   tickets: TicketData[];
@@ -210,7 +212,11 @@ export default function PorteroPage() {
   };
 
   const getMovieTitle = () => booking?.funcion?.pelicula?.titulo || booking?.movieTitle || booking?.pelicula || "Película Desconocida";
-  const getRoomName = () => booking?.funcion?.sala?.nombre || booking?.auditoriumName || booking?.sala || "Sala Desconocida";
+  const getRoomName = () => {
+    const salaNombre = booking?.funcion?.sala?.nombre || booking?.auditoriumName || booking?.sala || "Sala Desconocida";
+    const salaTipo = booking?.tipoSala || booking?.funcion?.sala?.tipo || "REGULAR";
+    return `${salaNombre} (${salaTipo.replace('FORMAT_', '')})`;
+  };
   const getDateStr = () => {
     const rawDate = booking?.funcion?.horarioInicio || booking?.showtimeDate || booking?.fechaHora;
     if (!rawDate) return "Fecha no disponible";
