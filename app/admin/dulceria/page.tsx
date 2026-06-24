@@ -225,8 +225,12 @@ export default function DulceriaPage() {
                         </div>
                       )}
                     </td>
-                    <td className="p-4 text-center">
-                      {prod.stock || 'Ilimitado'}
+                    <td className="p-4 text-center font-bold">
+                      {activeSedeId !== 'all' ? (
+                        sedeStocks.find(s => s.product.id === prod.id)?.stock || 0
+                      ) : (
+                        prod.stock || '0 (Base)'
+                      )}
                     </td>
                     <td className="p-4 text-center">
                       {activeSedeId !== 'all' ? (() => {
