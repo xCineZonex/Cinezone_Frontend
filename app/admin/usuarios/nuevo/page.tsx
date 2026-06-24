@@ -53,6 +53,12 @@ export default function NuevoStaffPage() {
   }, [activeSedeId]);
 
   const handleSedeToggle = (sedeId: number) => {
+    // Si estamos en un contexto de sede específico, impedimos deseleccionar esa sede
+    if (activeSedeId && activeSedeId !== 'all' && sedeId === Number(activeSedeId)) {
+      toast.error('No puedes deseleccionar la sede de tu contexto de trabajo actual.');
+      return;
+    }
+
     setFormData(prev => {
       const isSelected = prev.sedesIds.includes(sedeId);
       if (!isSelected && currentUser?.rol === 'ADMIN_SEDE' && prev.sedesIds.length >= 1) {
@@ -364,11 +370,16 @@ export default function NuevoStaffPage() {
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">Selecciona las sedes donde este usuario tendrá acceso o administración.</p>
                 <div className="flex flex-wrap gap-3">
-                  {sedes.map(s => (
+                  {sedes.map(s => {
+                    const isLocked = activeSedeId && activeSedeId !== 'all' && s.id === Number(activeSedeId);
+                    const isSelected = formData.sedesIds.includes(s.id);
+                    return (
                     <label 
                       key={s.id} 
-                      className={`flex items-center gap-2 px-5 py-3 rounded-full border cursor-pointer transition-all ${
-                        formData.sedesIds.includes(s.id) 
+                      className={`flex items-center gap-2 px-5 py-3 rounded-full border transition-all ${
+                        isLocked ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'
+                      } ${
+                        isSelected 
                           ? 'bg-purple-500 text-white border-purple-500 shadow-lg shadow-purple-500/20 scale-105' 
                           : 'bg-secondary/30 text-muted-foreground border-border hover:border-purple-500/50 hover:bg-secondary/50 hover:scale-105'
                       }`}
@@ -376,12 +387,14 @@ export default function NuevoStaffPage() {
                       <input 
                         type="checkbox" 
                         className="hidden"
-                        checked={formData.sedesIds.includes(s.id)}
+                        checked={isSelected}
                         onChange={() => handleSedeToggle(s.id)}
+                        disabled={isLocked}
                       />
+                      {isLocked && <Lock className="w-4 h-4" />}
                       <span className="font-bold text-sm tracking-wide">{s.nombre}</span>
                     </label>
-                  ))}
+                  )})}
                 </div>
                 {formData.sedesIds.length === 0 && (
                   <p className="text-sm font-semibold text-red-500 mt-2">Debe seleccionar al menos una sede.</p>
