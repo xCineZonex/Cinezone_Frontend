@@ -129,11 +129,29 @@ export default function AdminFuncionesPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       {isEditable ? (
-                        <Link href={`/admin/funciones/${funcion.id}/editar`}>
-                          <button className="p-2 text-muted-foreground hover:text-primary transition-colors" title="Editar">
-                            <Edit className="w-4 h-4" />
+                        <div className="flex justify-end gap-2">
+                          <Link href={`/admin/funciones/${funcion.id}/editar`}>
+                            <button className="p-2 text-muted-foreground hover:text-primary transition-colors" title="Editar">
+                              <Edit className="w-4 h-4" />
+                            </button>
+                          </Link>
+                          <button 
+                            onClick={async () => {
+                              if (confirm('¿Está seguro de eliminar esta función?')) {
+                                try {
+                                  await api.delete(`/admin/catalogo/funciones/${funcion.id}`);
+                                  toast.success('Función eliminada');
+                                  fetchData();
+                                } catch (error: any) {
+                                  toast.error(error.response?.data?.message || 'Error al eliminar la función');
+                                }
+                              }
+                            }}
+                            className="p-2 text-muted-foreground hover:text-destructive transition-colors" title="Eliminar"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
                           </button>
-                        </Link>
+                        </div>
                       ) : (
                         <span className="text-xs text-muted-foreground italic px-2">Bloqueado</span>
                       )}

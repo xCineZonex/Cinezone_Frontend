@@ -49,11 +49,24 @@ export default function ReclamacionesPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
-    if (name === 'numeroDocumento' || name === 'telefono') {
-      // Solo permite números, sin espacios, ni signos negativos
+    if (name === 'telefono') {
       const onlyNums = value.replace(/[^0-9]/g, '');
       setFormData(prev => ({ ...prev, [name]: onlyNums }));
       return;
+    }
+    
+    if (name === 'numeroDocumento') {
+      const val = (formData.tipoDocumento === 'PASAPORTE' || formData.tipoDocumento === 'CE')
+        ? value.replace(/[^a-zA-Z0-9]/g, '')
+        : value.replace(/[^0-9]/g, '');
+      setFormData(prev => ({ ...prev, [name]: val }));
+      return;
+    }
+    
+    // Automatically clear document if type changes
+    if (name === 'tipoDocumento') {
+        setFormData(prev => ({ ...prev, tipoDocumento: value, numeroDocumento: '' }));
+        return;
     }
 
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -161,8 +174,8 @@ export default function ReclamacionesPage() {
                   value={formData.numeroDocumento}
                   onChange={handleChange}
                   maxLength={getMaxLength()}
-                  pattern="[0-9]+"
-                  title="Solo debe contener números"
+                  pattern={formData.tipoDocumento === 'DNI' ? "[0-9]+" : "[a-zA-Z0-9]+"}
+                  title={formData.tipoDocumento === 'DNI' ? "Solo debe contener números" : "Solo letras y números permitidos"}
                   className="w-full border border-border rounded-md px-3 py-2 bg-background"
                   placeholder="Número de documento"
                 />

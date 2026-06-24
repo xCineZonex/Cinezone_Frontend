@@ -263,7 +263,7 @@ export default function NuevaPeliculaPage() {
                 className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
               >
                 {enums.movieStatuses.length > 0 ? (
-                  enums.movieStatuses.map((status) => (
+                  enums.movieStatuses.filter(s => s !== 'RETIRADA').map((status) => (
                     <option key={status} value={status}>
                       {status.replace(/_/g, ' ')}
                     </option>
@@ -273,7 +273,6 @@ export default function NuevaPeliculaPage() {
                     <option value="EN_CARTELERA">En Cartelera</option>
                     <option value="PROXIMAMENTE">Próximamente</option>
                     <option value="PRE_VENTA">Pre-venta</option>
-                    <option value="RETIRADA">Retirada</option>
                   </>
                 )}
               </select>

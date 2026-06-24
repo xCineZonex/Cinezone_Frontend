@@ -97,11 +97,13 @@ export default function ReclamosInboxPage() {
                       )}
                     </td>
                     <td className="p-4 text-center">
-                      <Link href={`/admin/reclamos/${c.id}`}>
-                        <button className="px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground rounded-lg font-semibold transition-colors">
-                          {c.estado === 'PENDIENTE' ? 'Responder' : 'Ver Detalles'}
-                        </button>
-                      </Link>
+                      {c.estado === 'PENDIENTE' && (
+                        <Link href={`/admin/reclamos/${c.id}`}>
+                          <button className="px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground rounded-lg font-semibold transition-colors">
+                            Responder
+                          </button>
+                        </Link>
+                      )}
                     </td>
                   </tr>
                 ))}

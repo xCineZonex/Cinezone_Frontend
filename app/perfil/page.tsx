@@ -329,7 +329,7 @@ export default function UserProfilePage() {
                         <p className="font-semibold">{profile.correo}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground mb-1">DNI</p>
+                        <p className="text-sm text-muted-foreground mb-1">{profile.tipoDocumento || 'DNI'}</p>
                         <p className="font-semibold">{profile.dni}</p>
                       </div>
                       <div>
@@ -352,14 +352,17 @@ export default function UserProfilePage() {
                         <input type="text" value={formData.apellido} onChange={(e) => setFormData({...formData, apellido: e.target.value})} className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary" />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-semibold">DNI</label>
+                        <label className="text-sm font-semibold">{profile.tipoDocumento || 'DNI'}</label>
                         <input 
                           type="text" 
                           value={formData.dni} 
-                          onChange={(e) => setFormData({...formData, dni: e.target.value.replace(/[^0-9]/g, '')})} 
-                          maxLength={8}
-                          pattern="[0-9]{8}"
-                          title="Debe contener 8 dígitos"
+                          onChange={(e) => {
+                            const val = (profile.tipoDocumento === 'PASAPORTE' || profile.tipoDocumento === 'CE') 
+                              ? e.target.value.replace(/[^a-zA-Z0-9]/g, '') 
+                              : e.target.value.replace(/[^0-9]/g, '');
+                            setFormData({...formData, dni: val})
+                          }} 
+                          maxLength={(profile.tipoDocumento === 'PASAPORTE' || profile.tipoDocumento === 'CE') ? 12 : 8}
                           className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary" 
                         />
                       </div>

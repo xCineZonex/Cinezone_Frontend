@@ -9,7 +9,24 @@ export default function DiferenciaPage() {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
+  const [previewAmount, setPreviewAmount] = useState<number | null>(null);
+  const [metodoPago, setMetodoPago] = useState('');
   const router = useRouter();
+
+  const handlePreview = async () => {
+    if (!code) return;
+    setLoading(true);
+    setMessage(null);
+    try {
+      const { default: api } = await import('@/lib/api');
+      const res = await api.get(`/taquilla/pagar-diferencia/${code}`);
+      setPreviewAmount(res.data.diferencia);
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.response?.data?.message || 'Error al obtener la diferencia.' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,23 +84,58 @@ export default function DiferenciaPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium mb-2">Código de Boleta</label>
-            <input 
-              type="text"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="w-full p-4 bg-secondary rounded-xl text-center text-xl font-bold tracking-widest placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-              placeholder="EJ: ABC-123"
-              required
-            />
+            <div className="flex gap-2">
+              <input 
+                type="text"
+                value={code}
+                onChange={(e) => { setCode(e.target.value); setPreviewAmount(null); }}
+                className="w-full p-4 bg-secondary rounded-xl text-center text-xl font-bold tracking-widest placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary transition-all uppercase"
+                placeholder="EJ: ABC-123"
+                required
+              />
+              <button 
+                type="button"
+                onClick={handlePreview}
+                disabled={loading || !code}
+                className="px-6 bg-secondary/80 text-foreground font-bold rounded-xl hover:bg-secondary disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              >
+                Buscar
+              </button>
+            </div>
           </div>
 
-          <button 
-            type="submit"
-            disabled={loading || !code}
-            className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-          >
-            {loading ? 'Procesando...' : 'Verificar y Pagar'}
-          </button>
+          {previewAmount !== null && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-4">
+              <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 text-center">
+                <span className="block text-sm text-muted-foreground mb-1">Diferencia a Pagar</span>
+                <span className="text-3xl font-black text-primary">S/ {previewAmount.toFixed(2)}</span>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Método de Pago</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {['EFECTIVO', 'YAPE', 'PLIN', 'TARJETA_CREDITO'].map(method => (
+                    <button
+                      key={method}
+                      type="button"
+                      onClick={() => setMetodoPago(method)}
+                      className={`p-3 rounded-xl border-2 font-bold text-sm transition-all ${metodoPago === method ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-secondary text-muted-foreground hover:border-primary/50'}`}
+                    >
+                      {method.replace('_', ' ')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button 
+                type="submit"
+                disabled={loading || !metodoPago}
+                className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              >
+                {loading ? 'Procesando...' : 'Confirmar Pago'}
+              </button>
+            </motion.div>
+          )}
         </form>
       </motion.div>
     </div>

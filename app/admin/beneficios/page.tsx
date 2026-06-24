@@ -315,6 +315,7 @@ export default function AdminBeneficiosPage() {
                         required 
                         type="number" 
                         step="0.01" 
+                        min="0"
                         value={formData.price} 
                         onChange={e => setFormData({...formData, price: e.target.value})} 
                         className="w-full pl-12 pr-5 py-4 bg-secondary/50 border border-border rounded-2xl focus:outline-none focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all font-black text-xl text-primary" 
@@ -339,7 +340,8 @@ export default function AdminBeneficiosPage() {
                     <label className="text-sm font-bold text-muted-foreground">Costo en Puntos *</label>
                     <input 
                       required 
-                      type="number" 
+                      type="number"
+                      min="0"
                       value={formData.pointsRequired} 
                       onChange={e => setFormData({...formData, pointsRequired: e.target.value})} 
                       className="w-full px-5 py-4 bg-secondary/50 border border-border rounded-2xl focus:outline-none focus:bg-background focus:ring-4 focus:ring-blue-500/10 transition-all font-bold text-xl text-blue-500 text-center" 

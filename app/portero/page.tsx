@@ -456,8 +456,19 @@ export default function PorteroPage() {
                             {getSeatName(ticket)}
                           </span>
                           <span className="text-sm text-zinc-400 uppercase tracking-wider font-semibold mt-1">
-                            {ticket.tipo || 'General'} • {ticket.estado}
+                            {ticket.tipoEntrada || ticket.tipo || 'General'} • {ticket.estado}
                           </span>
+                          {/* Messages for specific ticket types */}
+                          {['CONADIS', 'PREFERENCIAL', 'E-DISCAPACIDAD'].includes((ticket.tipoEntrada || ticket.tipo)?.toUpperCase()) && !isUsada && (
+                            <span className="text-xs text-orange-400 font-bold mt-1">
+                              * Solicitar carnet de CONADIS. Si no es válido, debe pagar diferencia en caja.
+                            </span>
+                          )}
+                          {['MAYOR_60', 'ADULTO_MAYOR'].includes((ticket.tipoEntrada || ticket.tipo)?.toUpperCase()) && !isUsada && (
+                            <span className="text-xs text-blue-400 font-bold mt-1">
+                              * Solicitar DNI. Si no es válido, debe pagar diferencia en caja.
+                            </span>
+                          )}
                         </div>
                         
                         <div>
