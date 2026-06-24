@@ -9,11 +9,7 @@ const footerLinks = {
     { name: 'Sobre Nosotros', href: '/nosotros' },
     { name: 'Términos y Condiciones', href: '/terminos' },
     { name: 'Política de Privacidad', href: '/privacidad' },
-  ],
-  cine: [
-    { name: 'Próximos Estrenos', href: '/proximos' },
-    { name: 'Precios', href: '/precios' },
-  ],
+  ]
 };
 
 const socialLinks = [
@@ -27,7 +23,7 @@ export default function Footer() {
   return (
     <footer className="bg-card border-t border-border">
       <div className="container mx-auto px-6 py-12">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Brand */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-4">
@@ -76,23 +72,6 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-
-          <div>
-            <h4 className="font-bold text-foreground mb-4">Cine</h4>
-            <ul className="space-y-2">
-              {footerLinks.cine.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    href={link.href}
-                    className="text-muted-foreground hover:text-primary transition-colors text-sm"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
 
         </div>
 
