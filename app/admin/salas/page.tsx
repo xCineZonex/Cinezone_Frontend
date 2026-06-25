@@ -60,6 +60,18 @@ export default function AdminSalasPage() {
     }
   };
 
+  const handleRename = async (sala: any) => {
+    const newName = window.prompt("Ingrese el nuevo nombre para la sala (Ej: Sala VIP 1):", sala.nombre);
+    if (!newName || newName.trim() === "" || newName === sala.nombre) return;
+    try {
+      await api.put(`/admin/catalogo/salas/${sala.id}`, { nombre: newName.trim() });
+      toast.success('Nombre actualizado exitosamente');
+      activeSedeId !== 'all' ? fetchSalas(Number(activeSedeId)) : fetchAllSalas();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Error al actualizar el nombre (asegúrese de que no tenga funciones activas).');
+    }
+  };
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
       {/* Header */}
@@ -130,7 +142,16 @@ export default function AdminSalasPage() {
                     <Sofa className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-foreground leading-tight">{sala.nombre}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-foreground leading-tight">{sala.nombre}</h3>
+                      <button 
+                        onClick={() => handleRename(sala)}
+                        className="text-muted-foreground hover:text-primary transition-colors"
+                        title="Renombrar sala"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                     <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                       <Building2 className="w-3 h-3" />
                       {sala.sedeNombre || 'Sede'}
