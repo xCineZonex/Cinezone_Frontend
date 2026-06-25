@@ -20,15 +20,16 @@ export default function AdminMantenimientoPage() {
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
-    if (activeSedeId && activeSedeId !== 'all') {
-      fetchTickets();
-    }
+    fetchTickets();
   }, [activeSedeId]);
 
   const fetchTickets = async () => {
     setLoading(true);
     try {
-      const res = await api.get(`/maintenance/sede/${activeSedeId}`);
+      const url = (!activeSedeId || activeSedeId === 'all') 
+        ? '/maintenance' 
+        : `/maintenance/sede/${activeSedeId}`;
+      const res = await api.get(url);
       setTickets(res.data?.data || res.data || []);
     } catch (err: any) {
       toast.error('Error al cargar tickets');
