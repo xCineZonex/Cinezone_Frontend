@@ -22,6 +22,7 @@ export default function UserProfilePage() {
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
+    tipoDocumento: 'DNI',
     dni: '',
     celular: '',
     genero: ''
@@ -51,6 +52,7 @@ export default function UserProfilePage() {
         setFormData({
           nombre: profileRes.data.nombre || '',
           apellido: profileRes.data.apellido || '',
+          tipoDocumento: profileRes.data.tipoDocumento || 'DNI',
           dni: profileRes.data.dni || '',
           celular: profileRes.data.celular || '',
           genero: profileRes.data.genero || ''
@@ -86,6 +88,19 @@ export default function UserProfilePage() {
   }, []);
 
   const handleSave = async () => {
+    // Validation
+    if (formData.tipoDocumento === 'PASAPORTE' && formData.dni.length < 6) {
+      toast.error('El Pasaporte debe tener al menos 6 caracteres');
+      return;
+    }
+    if (formData.tipoDocumento === 'CE' && formData.dni.length < 6) {
+      toast.error('El Carnet de Extranjería debe tener al menos 6 caracteres');
+      return;
+    }
+    if (formData.tipoDocumento === 'DNI' && formData.dni.length !== 8) {
+      toast.error('El DNI debe tener exactamente 8 caracteres');
+      return;
+    }
     setSaving(true);
     try {
       // Usamos PATCH para actualizar datos parciales
@@ -352,17 +367,29 @@ export default function UserProfilePage() {
                         <input type="text" value={formData.apellido} onChange={(e) => setFormData({...formData, apellido: e.target.value})} className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary" />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-semibold">{profile.tipoDocumento || 'DNI'}</label>
+                        <label className="text-sm font-semibold">Tipo Documento</label>
+                        <select 
+                          value={formData.tipoDocumento} 
+                          onChange={(e) => setFormData({...formData, tipoDocumento: e.target.value, dni: ''})} 
+                          className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary"
+                        >
+                          <option value="DNI">DNI</option>
+                          <option value="PASAPORTE">Pasaporte</option>
+                          <option value="CE">Carnet de Extranjería</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold">Documento</label>
                         <input 
                           type="text" 
                           value={formData.dni} 
                           onChange={(e) => {
-                            const val = (profile.tipoDocumento === 'PASAPORTE' || profile.tipoDocumento === 'CE') 
+                            const val = (formData.tipoDocumento === 'PASAPORTE' || formData.tipoDocumento === 'CE') 
                               ? e.target.value.replace(/[^a-zA-Z0-9]/g, '') 
                               : e.target.value.replace(/[^0-9]/g, '');
                             setFormData({...formData, dni: val})
                           }} 
-                          maxLength={(profile.tipoDocumento === 'PASAPORTE' || profile.tipoDocumento === 'CE') ? 12 : 8}
+                          maxLength={(formData.tipoDocumento === 'PASAPORTE' || formData.tipoDocumento === 'CE') ? 15 : 8}
                           className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary" 
                         />
                       </div>

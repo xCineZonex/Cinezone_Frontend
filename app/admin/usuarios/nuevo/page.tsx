@@ -94,8 +94,12 @@ export default function NuevoStaffPage() {
       toast.error('El DNI debe tener exactamente 8 números');
       return;
     }
-    if (formData.tipoDocumento === 'PASAPORTE' && formData.dni.length < 8) {
-      toast.error('El Pasaporte debe tener al menos 8 caracteres');
+    if (formData.tipoDocumento === 'PASAPORTE' && formData.dni.length < 6) {
+      toast.error('El Pasaporte debe tener al menos 6 caracteres');
+      return;
+    }
+    if (formData.tipoDocumento === 'CE' && formData.dni.length < 6) {
+      toast.error('El Carnet de Extranjería debe tener al menos 6 caracteres');
       return;
     }
     if (!/^\d{9}$/.test(formData.celular)) {
@@ -227,6 +231,7 @@ export default function NuevoStaffPage() {
                   >
                     <option value="DNI">DNI</option>
                     <option value="PASAPORTE">Pasaporte</option>
+                    <option value="CE">Carnet de Extranjería</option>
                   </select>
                 </div>
 
@@ -245,6 +250,9 @@ export default function NuevoStaffPage() {
                       onChange={(e) => {
                         if (formData.tipoDocumento === 'DNI') {
                           const val = e.target.value.replace(/\D/g, '');
+                          setFormData({...formData, dni: val});
+                        } else if (formData.tipoDocumento === 'CE' || formData.tipoDocumento === 'PASAPORTE') {
+                          const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
                           setFormData({...formData, dni: val});
                         } else {
                           handleChange(e);

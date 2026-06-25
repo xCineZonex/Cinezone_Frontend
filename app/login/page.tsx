@@ -96,6 +96,12 @@ export default function LoginPage() {
           return;
         }
 
+        if (formData.tipoDocumento === 'CE' && (formData.dni.length < 6 || formData.dni.length > 15)) {
+          setErrorMsg('El Carnet de Extranjería debe tener entre 6 y 15 caracteres.');
+          setLoading(false);
+          return;
+        }
+
         await api.post('/auth/register', {
           nombre: formData.nombre,
           apellido: formData.apellido,
@@ -224,12 +230,13 @@ export default function LoginPage() {
                         >
                           <option value="DNI">DNI</option>
                           <option value="PASAPORTE">Pasaporte</option>
+                          <option value="CE">Carnet de Extranjería</option>
                         </select>
                       </div>
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        {formData.tipoDocumento === 'DNI' ? 'Número de DNI' : 'Número de Pasaporte'}
+                        {formData.tipoDocumento === 'DNI' ? 'Número de DNI' : (formData.tipoDocumento === 'PASAPORTE' ? 'Número de Pasaporte' : 'Carnet de Extranjería')}
                       </label>
                       <div className="relative">
                         <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
