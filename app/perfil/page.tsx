@@ -104,8 +104,20 @@ export default function UserProfilePage() {
     setSaving(true);
     try {
       // Usamos PATCH para actualizar datos parciales
-      const response = await api.patch('/users/me', formData);
-      setProfile(response.data);
+      await api.patch('/users/me', formData);
+      
+      // Recargar el perfil desde el backend para tener los datos exactos y actualizados
+      const profileRes = await api.get('/users/me');
+      setProfile(profileRes.data);
+      setFormData({
+        nombre: profileRes.data.nombre || '',
+        apellido: profileRes.data.apellido || '',
+        tipoDocumento: profileRes.data.tipoDocumento || 'DNI',
+        dni: profileRes.data.dni || '',
+        celular: profileRes.data.celular || '',
+        genero: profileRes.data.genero || ''
+      });
+
       setIsEditing(false);
       toast.success('Perfil actualizado correctamente');
     } catch (error: any) {
