@@ -30,6 +30,17 @@ export default function NuevaPeliculaPage() {
     movieStatuses: [] as string[]
   });
 
+  const currentYear = new Date().getFullYear();
+  const minDate = `${currentYear}-01-01`;
+  const maxDate = `${currentYear + 2}-12-31`;
+
+  const getNextDay = (dateString: string) => {
+    if (!dateString) return minDate;
+    const date = new Date(dateString + 'T00:00:00');
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().split('T')[0];
+  };
+
   useEffect(() => {
     fetchEnums();
   }, []);
@@ -54,8 +65,8 @@ export default function NuevaPeliculaPage() {
     e.preventDefault();
 
     if (formData.fechaFinCartelera && formData.fechaEstreno) {
-      if (new Date(formData.fechaFinCartelera + 'T00:00:00') < new Date(formData.fechaEstreno + 'T00:00:00')) {
-        toast.error('La fecha de fin no puede ser menor que la fecha de estreno');
+      if (new Date(formData.fechaFinCartelera + 'T00:00:00') <= new Date(formData.fechaEstreno + 'T00:00:00')) {
+        toast.error('La fecha de fin debe ser posterior a la fecha de estreno');
         return;
       }
     }
@@ -196,6 +207,8 @@ export default function NuevaPeliculaPage() {
                 type="date"
                 name="fechaEstreno"
                 required
+                min={minDate}
+                max={maxDate}
                 value={formData.fechaEstreno}
                 onChange={handleChange}
                 className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
@@ -207,6 +220,8 @@ export default function NuevaPeliculaPage() {
               <input
                 type="date"
                 name="fechaFinCartelera"
+                min={getNextDay(formData.fechaEstreno)}
+                max={maxDate}
                 value={formData.fechaFinCartelera}
                 onChange={handleChange}
                 className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
