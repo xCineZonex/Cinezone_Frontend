@@ -307,6 +307,7 @@ export default function PreciosAdminPage() {
                       <option value="NINO">NIÑO</option>
                       <option value="TERCERA_EDAD">TERCERA EDAD</option>
                       <option value="DISCAPACIDAD">DISCAPACIDAD (CONADIS)</option>
+                      <option value="BENEFICIO">BENEFICIO / PROMOCIÓN</option>
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -381,23 +382,61 @@ export default function PreciosAdminPage() {
               <p className="text-zinc-400 font-medium">Aún no se han creado tipos de boletos base en el sistema.</p>
             </motion.div>
           ) : (
-            <AnimatePresence>
-              {basePrices.map(base => (
-                <PriceRow 
-                  key={base.id} 
-                  base={base} 
-                  sedePrices={sedePrices} 
-                  isSuperAdmin={isSuperAdmin} 
-                  activeSedeId={activeSedeId} 
-                  handleSaveLocalPrice={handleSaveLocalPrice} 
-                  onEditBase={(base: any) => {
-                    setEditingBase(base);
-                    setBaseForm({ name: base.name, ticketType: base.ticketType, formato: base.formato || 'FORMAT_2D', basePrice: base.basePrice });
-                    setShowBaseForm(true);
-                  }}
-                />
-              ))}
-            </AnimatePresence>
+            <>
+              {/* Entradas Normales */}
+              <div className="mb-4">
+                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2 border-b border-zinc-800 pb-2">
+                  <Ticket className="w-5 h-5 text-primary" /> Entradas Normales
+                </h2>
+                <div className="flex flex-col gap-5">
+                  <AnimatePresence>
+                    {basePrices.filter(b => b.ticketType !== 'BENEFICIO').map(base => (
+                      <PriceRow 
+                        key={base.id} 
+                        base={base} 
+                        sedePrices={sedePrices} 
+                        isSuperAdmin={isSuperAdmin} 
+                        activeSedeId={activeSedeId} 
+                        handleSaveLocalPrice={handleSaveLocalPrice} 
+                        onEditBase={(base: any) => {
+                          setEditingBase(base);
+                          setBaseForm({ name: base.name, ticketType: base.ticketType, formato: base.formato || 'FORMAT_2D', basePrice: base.basePrice });
+                          setShowBaseForm(true);
+                        }}
+                      />
+                    ))}
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              {/* Entradas Beneficio */}
+              {basePrices.some(b => b.ticketType === 'BENEFICIO') && (
+                <div className="mt-8">
+                  <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2 border-b border-zinc-800 pb-2">
+                    <Activity className="w-5 h-5 text-amber-500" /> Entradas de Beneficio / Promoción
+                  </h2>
+                  <div className="flex flex-col gap-5">
+                    <AnimatePresence>
+                      {basePrices.filter(b => b.ticketType === 'BENEFICIO').map(base => (
+                        <PriceRow 
+                          key={base.id} 
+                          base={base} 
+                          sedePrices={sedePrices} 
+                          isSuperAdmin={isSuperAdmin} 
+                          activeSedeId={activeSedeId} 
+                          handleSaveLocalPrice={handleSaveLocalPrice} 
+                          onEditBase={(base: any) => {
+                            setEditingBase(base);
+                            setBaseForm({ name: base.name, ticketType: base.ticketType, formato: base.formato || 'FORMAT_2D', basePrice: base.basePrice });
+                            setShowBaseForm(true);
+                          }}
+                        />
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
