@@ -341,12 +341,31 @@ export default function Navbar() {
 
                       {cartItemsCount > 0 && (
                         <div className="p-4 border-t border-border bg-secondary/10">
-                          <Link href="/checkout/pago" onClick={() => setIsCartOpen(false)}>
-                            <button className="w-full py-4 bg-primary text-primary-foreground font-black rounded-xl hover:bg-primary/90 transition-all shadow-md flex justify-between items-center px-5">
-                              <span>Ir a Pagar</span>
-                              <span className="bg-background/20 px-2 py-1 rounded-lg">S/ {getGranTotal().toFixed(2)}</span>
-                            </button>
-                          </Link>
+                          {(() => {
+                            const totalTicketsQty = tickets.reduce((acc, t) => acc + t.cantidad, 0);
+                            const totalSeatsQty = asientos.length;
+                            // Requerimos que coincidan entradas y butacas SI hay butacas o SI hay entradas en proceso.
+                            // Si solo compran snacks (asientos=0, entradas=0), pueden pasar normal.
+                            const needsTicketSelection = totalSeatsQty > 0 && totalTicketsQty !== totalSeatsQty;
+                            
+                            return needsTicketSelection ? (
+                              <div className="text-center">
+                                <p className="text-xs text-amber-500 font-bold mb-2">
+                                  Debes seleccionar {totalSeatsQty} entrada(s) para continuar.
+                                </p>
+                                <button disabled className="w-full py-4 bg-zinc-800 text-zinc-500 font-black rounded-xl cursor-not-allowed">
+                                  Ir a Pagar
+                                </button>
+                              </div>
+                            ) : (
+                              <Link href="/checkout/pago" onClick={() => setIsCartOpen(false)}>
+                                <button className="w-full py-4 bg-primary text-primary-foreground font-black rounded-xl hover:bg-primary/90 transition-all shadow-md flex justify-between items-center px-5">
+                                  <span>Ir a Pagar</span>
+                                  <span className="bg-background/20 px-2 py-1 rounded-lg">S/ {getGranTotal().toFixed(2)}</span>
+                                </button>
+                              </Link>
+                            );
+                          })()}
                         </div>
                       )}
                     </motion.div>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSedeStore } from '@/store/useSedeStore';
 import api from '@/lib/api';
 import { Card } from '@/components/ui/card';
-import { Save, PlusCircle, Pencil, Trash, Ticket, ArrowRight, DollarSign, Activity, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Save, PlusCircle, Pencil, Trash, Ticket, ArrowRight, DollarSign, Activity, CheckCircle2, AlertCircle, CalendarDays } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -13,22 +13,35 @@ function PriceRow({ base, sedePrices, isSuperAdmin, activeSedeId, handleSaveLoca
   const initialPrice = localPriceMatch ? localPriceMatch.localPrice : base.basePrice;
   const initialActive = localPriceMatch?.isActive !== false;
   
+  const initialDailyPrices = {
+    priceMonday: localPriceMatch?.priceMonday ?? '',
+    priceTuesday: localPriceMatch?.priceTuesday ?? '',
+    priceWednesday: localPriceMatch?.priceWednesday ?? '',
+    priceThursday: localPriceMatch?.priceThursday ?? '',
+    priceFriday: localPriceMatch?.priceFriday ?? '',
+    priceSaturday: localPriceMatch?.priceSaturday ?? '',
+    priceSunday: localPriceMatch?.priceSunday ?? ''
+  };
+
   const [localPrice, setLocalPrice] = useState<number>(initialPrice);
   const [isActive, setIsActive] = useState<boolean>(initialActive);
+  const [dailyPrices, setDailyPrices] = useState(initialDailyPrices);
+  const [showDaily, setShowDaily] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setLocalPrice(initialPrice);
     setIsActive(initialActive);
-  }, [initialPrice, initialActive]);
+    setDailyPrices(initialDailyPrices);
+  }, [initialPrice, initialActive, localPriceMatch]);
 
   const handleSave = async () => {
     setIsSaving(true);
-    await handleSaveLocalPrice(base.id, localPrice, isActive);
+    await handleSaveLocalPrice(base.id, localPrice, isActive, dailyPrices);
     setIsSaving(false);
   };
 
-  const hasChanged = localPrice !== initialPrice || isActive !== initialActive;
+  const hasChanged = localPrice !== initialPrice || isActive !== initialActive || JSON.stringify(dailyPrices) !== JSON.stringify(initialDailyPrices);
 
   return (
     <motion.div 
@@ -114,6 +127,14 @@ function PriceRow({ base, sedePrices, isSuperAdmin, activeSedeId, handleSaveLoca
                   )}
                 </button>
               </div>
+
+              <button
+                onClick={() => setShowDaily(!showDaily)}
+                className={`ml-2 p-2.5 rounded-xl border transition-colors ${showDaily ? 'bg-primary/20 border-primary/50 text-primary' : 'border-zinc-700 hover:border-zinc-500 text-zinc-400'}`}
+                title="Precios por Día"
+              >
+                <CalendarDays className="w-5 h-5" />
+              </button>
             </div>
         )}
         
@@ -127,6 +148,44 @@ function PriceRow({ base, sedePrices, isSuperAdmin, activeSedeId, handleSaveLoca
           </button>
         )}
       </div>
+
+      {/* Expanded Daily Prices */}
+      <AnimatePresence>
+        {showDaily && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden mt-2"
+          >
+            <div className="p-4 bg-zinc-900/50 rounded-2xl border border-zinc-800/80 shadow-inner grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+              {[
+                { key: 'priceMonday', label: 'Lunes' },
+                { key: 'priceTuesday', label: 'Martes' },
+                { key: 'priceWednesday', label: 'Miércoles' },
+                { key: 'priceThursday', label: 'Jueves' },
+                { key: 'priceFriday', label: 'Viernes' },
+                { key: 'priceSaturday', label: 'Sábado' },
+                { key: 'priceSunday', label: 'Domingo' }
+              ].map(day => (
+                <div key={day.key} className="space-y-1">
+                  <label className="text-xs font-bold text-zinc-400 uppercase">{day.label}</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="Auto"
+                    value={(dailyPrices as any)[day.key]}
+                    onChange={(e) => setDailyPrices({ ...dailyPrices, [day.key]: e.target.value })}
+                    className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-1.5 font-semibold text-sm focus:outline-none focus:border-primary/50 text-white transition-all placeholder:text-zinc-700"
+                    disabled={!isActive}
+                  />
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -211,7 +270,7 @@ export default function PreciosAdminPage() {
     }
   };
 
-  const handleSaveLocalPrice = async (basePriceId: number, localPrice: number, isActive: boolean = true) => {
+  const handleSaveLocalPrice = async (basePriceId: number, localPrice: number, isActive: boolean = true, dailyPrices: any = null) => {
     if (!activeSedeId || activeSedeId === 'all') {
       toast.error('Debe seleccionar una sede');
       return;
@@ -221,7 +280,14 @@ export default function PreciosAdminPage() {
         cinema: { id: activeSedeId },
         ticketBasePrice: { id: basePriceId },
         localPrice: localPrice,
-        isActive: isActive
+        isActive: isActive,
+        priceMonday: dailyPrices?.priceMonday ? parseFloat(dailyPrices.priceMonday) : null,
+        priceTuesday: dailyPrices?.priceTuesday ? parseFloat(dailyPrices.priceTuesday) : null,
+        priceWednesday: dailyPrices?.priceWednesday ? parseFloat(dailyPrices.priceWednesday) : null,
+        priceThursday: dailyPrices?.priceThursday ? parseFloat(dailyPrices.priceThursday) : null,
+        priceFriday: dailyPrices?.priceFriday ? parseFloat(dailyPrices.priceFriday) : null,
+        priceSaturday: dailyPrices?.priceSaturday ? parseFloat(dailyPrices.priceSaturday) : null,
+        priceSunday: dailyPrices?.priceSunday ? parseFloat(dailyPrices.priceSunday) : null
       };
       await api.post('/jefe-sala/precios-entradas', payload);
       toast.success('Precio local actualizado', { icon: <CheckCircle2 className="text-green-500" /> });

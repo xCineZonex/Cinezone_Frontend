@@ -80,7 +80,7 @@ export default function CheckoutEntradasPage() {
         const apiTickets = ticketsRes.value.data.map((t: any) => ({
           id: t.tipo, 
           name: t.nombre || t.tipo,
-          description: t.tipo === 'NORMAL' ? 'Entrada General 2D' : t.tipo === 'TERCERA_EDAD' ? 'Mayores 60 años' : 'Conadis/Niños',
+          description: t.tipo === 'NORMAL' ? 'Entrada General' : t.tipo === 'TERCERA_EDAD' ? 'Mayores 60 años' : t.tipo === 'BENEFICIO' ? 'Entrada Promocional / Beneficio' : 'Conadis/Niños',
           price: t.precio,
           fee: 0.00, // Sin servicio extra
           isLowest: t.tipo === 'TERCERA_EDAD' || t.tipo === 'NINO'
