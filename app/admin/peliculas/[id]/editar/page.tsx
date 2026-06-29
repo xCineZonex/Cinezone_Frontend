@@ -83,6 +83,24 @@ export default function EditarPeliculaPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.fechaFinCartelera && formData.fechaEstreno) {
+      if (new Date(formData.fechaFinCartelera + 'T00:00:00') < new Date(formData.fechaEstreno + 'T00:00:00')) {
+        toast.error('La fecha de fin no puede ser menor que la fecha de estreno');
+        return;
+      }
+    }
+
+    if (formData.estado === 'PROXIMAMENTE' && formData.fechaEstreno) {
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      const estreno = new Date(formData.fechaEstreno + 'T00:00:00');
+      if (estreno < hoy) {
+        toast.error('Una película ya estrenada no puede tener el estado Próximamente');
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -275,15 +293,18 @@ export default function EditarPeliculaPage() {
                 className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
               >
                 {enums.movieStatuses.length > 0 ? (
-                  enums.movieStatuses.map((status) => (
-                    <option key={status} value={status}>
-                      {status.replace(/_/g, ' ')}
-                    </option>
-                  ))
+                  enums.movieStatuses.map((status) => {
+                    const isPastRelease = formData.fechaEstreno ? new Date(formData.fechaEstreno + 'T00:00:00') < new Date(new Date().setHours(0,0,0,0)) : false;
+                    return (
+                      <option key={status} value={status} disabled={status === 'PROXIMAMENTE' && isPastRelease}>
+                        {status.replace(/_/g, ' ')}
+                      </option>
+                    );
+                  })
                 ) : (
                   <>
                     <option value="EN_CARTELERA">En Cartelera</option>
-                    <option value="PROXIMAMENTE">Próximamente</option>
+                    <option value="PROXIMAMENTE" disabled={formData.fechaEstreno ? new Date(formData.fechaEstreno + 'T00:00:00') < new Date(new Date().setHours(0,0,0,0)) : false}>Próximamente</option>
                     <option value="PRE_VENTA">Pre-venta</option>
                     <option value="RETIRADA">Retirada</option>
                   </>
