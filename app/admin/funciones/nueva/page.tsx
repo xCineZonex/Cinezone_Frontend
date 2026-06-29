@@ -197,7 +197,7 @@ export default function NuevaFuncionPage() {
                 required
                 value={formData.fechaHora}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all dark:[color-scheme:dark]"
               />
             </div>
 
