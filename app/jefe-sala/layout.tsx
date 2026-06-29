@@ -15,7 +15,6 @@ const sidebarLinks = [
   { name: 'Cartelera', href: '/jefe-sala/funciones', icon: CalendarDays },
   { name: 'Inventario Local', href: '/jefe-sala/inventario', icon: Package },
   { name: 'Operaciones y Cajas', href: '/jefe-sala/cajas', icon: Users },
-  { name: 'Mantenimiento', href: '/jefe-sala/mantenimiento', icon: Package },
 ];
 
 export default function JefeSalaLayout({ children }: { children: ReactNode }) {

@@ -21,9 +21,7 @@ const sidebarLinks = [
   { name: 'Usuarios', href: '/admin/usuarios', icon: Users },
   { name: 'Beneficios', href: '/admin/beneficios', icon: Star },
   { name: 'Reclamaciones', href: '/admin/reclamos', icon: BookOpen },
-  { name: 'Presupuestos', href: '/admin/presupuestos', icon: DollarSign },
   { name: 'Precios Base', href: '/admin/precios', icon: DollarSign },
-  { name: 'Mantenimiento', href: '/admin/mantenimiento', icon: Package },
   { name: 'Anulaciones', href: '/admin/anulaciones', icon: AlertCircle },
 ];
 
