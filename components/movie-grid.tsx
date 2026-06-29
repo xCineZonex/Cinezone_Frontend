@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import MovieCard from './movie-card';
 import api from '@/lib/api';
@@ -12,18 +13,25 @@ const filtros = [
   { id: 'PRE_VENTA', label: 'Pre-Venta' },
 ];
 
-export default function MovieGrid() {
+function MovieGridContent() {
   const [peliculas, setPeliculas] = useState<any[]>([]);
   const [filtroActivo, setFiltroActivo] = useState('todos');
   const [loading, setLoading] = useState(true);
+
+  const searchParams = useSearchParams();
+  const sedeId = searchParams?.get('sede');
 
   useEffect(() => {
     const fetchPeliculas = async () => {
       setLoading(true);
       try {
-        const url = filtroActivo === 'todos' 
+        let url = filtroActivo === 'todos' 
           ? '/peliculas' 
           : `/peliculas/estado/${filtroActivo}`;
+          
+        if (sedeId) {
+          url += `?sedeId=${sedeId}`;
+        }
           
         const response = await api.get(url);
         setPeliculas(response.data);
@@ -34,7 +42,7 @@ export default function MovieGrid() {
       }
     };
     fetchPeliculas();
-  }, [filtroActivo]);
+  }, [filtroActivo, sedeId]);
 
   const peliculasFiltradas = peliculas;
 
@@ -131,5 +139,13 @@ export default function MovieGrid() {
         )}
       </div>
     </section>
+  );
+}
+
+export default function MovieGrid() {
+  return (
+    <Suspense fallback={<div className="text-center py-16 text-muted-foreground">Cargando cartelera...</div>}>
+      <MovieGridContent />
+    </Suspense>
   );
 }
