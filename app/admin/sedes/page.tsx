@@ -19,7 +19,7 @@ export default function AdminSedesPage() {
 
   const fetchSedes = async () => {
     try {
-      const response = await api.get('/public/sedes');
+      const response = await api.get('/admin/catalogo/sedes');
       setSedes(response.data);
     } catch {
       toast.error('Error al cargar las sedes');
