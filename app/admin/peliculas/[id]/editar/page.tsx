@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, Save } from 'lucide-react';
+import { ChevronLeft, Save, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/api';
 
@@ -216,29 +216,45 @@ export default function EditarPeliculaPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-semibold">Fecha de Estreno *</label>
-              <input
-                type="date"
-                name="fechaEstreno"
-                required
-                min={minDate}
-                max={maxDate}
-                value={formData.fechaEstreno}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-              />
+              <div className="relative w-full">
+                <input
+                  type="date"
+                  name="fechaEstreno"
+                  required
+                  min={minDate}
+                  max={maxDate}
+                  value={formData.fechaEstreno}
+                  onChange={handleChange}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                />
+                <div className="w-full px-4 py-3 bg-background border border-border rounded-xl flex items-center justify-between transition-all focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
+                  <span className={formData.fechaEstreno ? "text-foreground" : "text-muted-foreground"}>
+                    {formData.fechaEstreno ? formData.fechaEstreno.split('-').reverse().join('/') : "Selecciona una fecha"}
+                  </span>
+                  <Calendar className="w-5 h-5 text-muted-foreground" />
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-semibold">Fecha Fin de Cartelera</label>
-              <input
-                type="date"
-                name="fechaFinCartelera"
-                min={getNextDay(formData.fechaEstreno)}
-                max={maxDate}
-                value={formData.fechaFinCartelera}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-              />
+              <div className="relative w-full">
+                <input
+                  type="date"
+                  name="fechaFinCartelera"
+                  min={getNextDay(formData.fechaEstreno)}
+                  max={maxDate}
+                  value={formData.fechaFinCartelera}
+                  onChange={handleChange}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                />
+                <div className="w-full px-4 py-3 bg-background border border-border rounded-xl flex items-center justify-between transition-all focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
+                  <span className={formData.fechaFinCartelera ? "text-foreground" : "text-muted-foreground"}>
+                    {formData.fechaFinCartelera ? formData.fechaFinCartelera.split('-').reverse().join('/') : "Opcional"}
+                  </span>
+                  <Calendar className="w-5 h-5 text-muted-foreground" />
+                </div>
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Opcional. Si se deja en blanco, el sistema asignará 3 semanas (21 días) a partir del estreno.
               </p>
