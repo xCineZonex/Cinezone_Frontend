@@ -31,6 +31,11 @@ export default function JefeSalaInventario() {
   const [motivo, setMotivo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Modal de Restock
+  const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
+  const [restockProdId, setRestockProdId] = useState<number | null>(null);
+  const [restockCantidad, setRestockCantidad] = useState('');
+
   const fetchProductos = async () => {
     try {
       setLoading(true);
@@ -87,17 +92,33 @@ export default function JefeSalaInventario() {
     fetchPendingRequests();
   }, []);
 
-  const handleRestock = async (id: number) => {
+  const openRestockModal = (id: number) => {
+    setRestockProdId(id);
+    setRestockCantidad('');
+    setIsRestockModalOpen(true);
+  };
+
+  const submitRestock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!restockProdId || !restockCantidad || Number(restockCantidad) <= 0) {
+      toast.error('Ingrese una cantidad válida mayor a 0');
+      return;
+    }
+    
+    setIsSubmitting(true);
     try {
-      await api.post('/alertas/restock', { productoId: id });
+      await api.post('/alertas/restock', { productoId: restockProdId, cantidad: Number(restockCantidad) });
       toast.success('Solicitud de restock enviada al administrador', {
-        description: 'El equipo central ha sido notificado para reabastecer este producto.',
+        description: 'El administrador ha sido notificado para reabastecer este insumo.',
         icon: <RefreshCw className="w-4 h-4 text-green-500" />
       });
+      setIsRestockModalOpen(false);
       fetchPendingRequests();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || error.response?.data?.error || 'Error al pedir restock');
+      toast.error(error.response?.data?.message || 'Error al pedir restock');
       console.error(error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -242,7 +263,7 @@ export default function JefeSalaInventario() {
                           </button>
                         ) : (
                           <button
-                            onClick={() => handleRestock(producto.id)}
+                            onClick={() => openRestockModal(producto.id)}
                             className="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all bg-muted text-foreground hover:bg-muted/80 border border-border/50 hover:border-border active:scale-95"
                             title="Pedir reabastecimiento"
                           >
@@ -330,6 +351,58 @@ export default function JefeSalaInventario() {
                   className={`flex-1 px-4 py-3 text-white rounded-xl font-bold transition-colors ${tipoMovimiento === 'ENTRADA' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
                 >
                   {isSubmitting ? 'Guardando...' : 'Confirmar'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Modal Restock */}
+      {isRestockModalOpen && restockProdId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <motion.div 
+            initial={{ scale: 0.95, opacity: 0 }} 
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-card border border-border rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 rounded-xl bg-orange-500/10 text-orange-500">
+                <RefreshCw className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold">Solicitar Restock</h2>
+                <p className="text-sm text-muted-foreground">Pedir reabastecimiento de insumo</p>
+              </div>
+            </div>
+            
+            <form onSubmit={submitRestock} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold mb-2">Cantidad Solicitada</label>
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  value={restockCantidad}
+                  onChange={(e) => setRestockCantidad(e.target.value)}
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-primary"
+                  placeholder="Ej. 100"
+                />
+              </div>
+              <div className="flex gap-4 mt-8">
+                <button
+                  type="button"
+                  onClick={() => setIsRestockModalOpen(false)}
+                  className="flex-1 px-4 py-3 border border-border rounded-xl font-semibold hover:bg-secondary transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-3 bg-primary text-black rounded-xl font-bold hover:bg-primary/90 transition-colors"
+                >
+                  {isSubmitting ? 'Enviando...' : 'Solicitar'}
                 </button>
               </div>
             </form>

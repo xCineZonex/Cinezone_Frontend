@@ -387,7 +387,7 @@ export default function InventarioPage() {
                     <h3 className="font-bold text-lg">{sol.productName}</h3>
                     <AlertTriangle className="text-amber-500 w-5 h-5" />
                   </div>
-                  <p className="text-sm text-muted-foreground mb-6">El jefe de sala reporta bajo stock y requiere reabastecimiento.</p>
+                  <p className="text-sm text-muted-foreground mb-6">El jefe de sala reporta bajo stock y requiere reabastecimiento de <strong>{sol.requestedQuantity}</strong> unidades.</p>
                   <div className="flex gap-3">
                     <button onClick={() => handleSolicitud(sol.id, 'ATENDIDO')} className="flex-1 py-2 bg-primary hover:bg-primary/90 text-black font-bold rounded-xl transition-all">
                       Atender
