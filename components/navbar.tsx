@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { Menu, X, ShoppingCart, User, Film, MapPin, Popcorn, LogOut, Ticket, Info, QrCode, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
@@ -22,20 +23,46 @@ export default function Navbar() {
   const [userRole, setUserRole] = useState<string>('');
   const { asientos, snacks, tickets, clearCart, updateSnackQuantity, removeSnack, getGranTotal, toggleAsiento, setTickets, bookingExpiresAt } = useCartStore();
   const cartItemsCount = asientos.length + snacks.reduce((acc, s) => acc + s.cantidad, 0);
+  const router = useRouter();
 
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   // Global Cart Expiration Timer
   useEffect(() => {
     if (bookingExpiresAt) {
+      const handleExpiration = async () => {
+        const state = useCartStore.getState();
+        const { asientos: currentAsientos, funcionId, pelicula } = state;
+        
+        // Liberar asientos en el backend
+        if (funcionId && currentAsientos.length > 0) {
+          try {
+            await Promise.all(
+              currentAsientos.map(a => api.delete('/reservas/asientos/unlock', { params: { funcionId, asientoId: a.asientoId } }).catch(() => {}))
+            );
+          } catch (e) {}
+        }
+        
+        clearCart();
+        toast.error("El tiempo de tu reserva ha expirado. Los asientos han sido liberados.");
+        
+        // Redirigir solo si está en el flujo de compra
+        if (window.location.pathname.includes('/reserva') || window.location.pathname.includes('/checkout') || window.location.pathname.includes('/dulceria')) {
+          if (pelicula?.id) {
+            router.push(`/pelicula/${pelicula.id}`);
+          } else {
+            router.push('/cartelera');
+          }
+        }
+      };
+
       // Check immediately
       const now = Date.now();
       const initialRemaining = Math.max(0, Math.floor((bookingExpiresAt - now) / 1000));
       setTimeLeft(initialRemaining);
       
       if (initialRemaining <= 0) {
-        clearCart();
-        toast.error("El tiempo de tu reserva de asientos ha expirado.");
+        handleExpiration();
         return;
       }
 
@@ -46,15 +73,14 @@ export default function Navbar() {
 
         if (remaining <= 0) {
           clearInterval(interval);
-          clearCart();
-          toast.error("El tiempo de tu reserva de asientos ha expirado.");
+          handleExpiration();
         }
       }, 1000);
       return () => clearInterval(interval);
     } else {
       setTimeLeft(null);
     }
-  }, [bookingExpiresAt, clearCart]);
+  }, [bookingExpiresAt, clearCart, router]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
