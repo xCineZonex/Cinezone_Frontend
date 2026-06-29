@@ -98,7 +98,7 @@ export default function NuevaFuncionPage() {
   const selectedDate = formData.fechaHora ? formData.fechaHora.split('T')[0] : new Date().toISOString().split('T')[0];
 
   const availableMovies = peliculas.filter(p => {
-    if (p.estado === 'PROXIMAMENTE' || p.estado === 'RETIRADA') return false;
+    if (p.estado === 'RETIRADA') return false;
     if (!formData.fechaHora) return true;
     const selectedDateStr = formData.fechaHora.split('T')[0];
     if (p.fechaFinCartelera && p.fechaFinCartelera < selectedDateStr) return false;

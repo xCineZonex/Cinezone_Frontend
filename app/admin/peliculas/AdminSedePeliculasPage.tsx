@@ -121,9 +121,9 @@ export default function AdminSedePeliculasPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {peliculasCatalogo.filter(m => m.estado === 'EN_CARTELERA').length === 0 ? (
-                <tr><td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">No hay películas en cartelera global.</td></tr>
-              ) : peliculasCatalogo.filter(m => m.estado === 'EN_CARTELERA').map((movie) => (
+              {peliculasCatalogo.filter(m => m.estado !== 'RETIRADA').length === 0 ? (
+                <tr><td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">No hay películas disponibles en el catálogo global.</td></tr>
+              ) : peliculasCatalogo.filter(m => m.estado !== 'RETIRADA').map((movie) => (
                 <tr key={movie.id} className="hover:bg-secondary/20 transition-colors">
                   <td className="px-6 py-4 font-mono text-xs text-muted-foreground">#{movie.id}</td>
                   <td className="px-6 py-4">
