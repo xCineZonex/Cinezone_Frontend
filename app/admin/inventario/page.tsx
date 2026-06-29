@@ -202,10 +202,10 @@ export default function InventarioPage() {
         categoria: 'INSUMO',
         esInsumo: true,
         imagen: imageUrl,
-        cinemaId: newInsumo.sedeId ? parseInt(newInsumo.sedeId, 10) : null,
-        stockGenerado: newInsumo.stock ? parseInt(newInsumo.stock, 10) : null
+        cinemaId: null,
+        stockGenerado: null
       });
-      toast.success('Insumo creado correctamente');
+      toast.success('Insumo global creado correctamente');
       setIsModalOpen(false);
       setNewInsumo({ nombre: '', sedeId: '', stock: '' });
       setImageFile(null);
@@ -327,30 +327,12 @@ export default function InventarioPage() {
                   className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-primary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-semibold mb-2">Sede Inicial (Opcional)</label>
-                <select
-                  value={newInsumo.sedeId}
-                  onChange={(e) => setNewInsumo({...newInsumo, sedeId: e.target.value})}
-                  className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="">Ninguna (Global)</option>
-                  {assignedSedes.filter(s => s.id !== 'all').map((s: any) => <option key={s.id} value={s.id}>{s.nombre}</option>)}
-                </select>
+              <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 mt-2">
+                <p className="text-sm text-primary font-medium flex items-center gap-2">
+                  <Package className="w-4 h-4" /> Este insumo se creará como un Insumo Global.
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">El stock se gestionará independientemente en cada sede a través de Movimientos (Entradas/Salidas).</p>
               </div>
-              {newInsumo.sedeId && (
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Stock Inicial en Sede</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={newInsumo.stock}
-                    onChange={(e) => setNewInsumo({...newInsumo, stock: e.target.value})}
-                    className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-primary"
-                    placeholder="Ej. 100"
-                  />
-                </div>
-              )}
               <div className="flex gap-4 mt-8">
                 <button
                   type="button"
@@ -403,80 +385,7 @@ export default function InventarioPage() {
         </div>
       ) : (
         <>
-      {/* Modal Nuevo Insumo */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <motion.div 
-            initial={{ scale: 0.95, opacity: 0 }} 
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-card border border-border rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl"
-          >
-            <h2 className="text-2xl font-bold mb-6">Añadir Nuevo Insumo</h2>
-            <form onSubmit={handleCreateInsumo} className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold mb-2">Nombre del Insumo *</label>
-                <input
-                  type="text"
-                  required
-                  value={newInsumo.nombre}
-                  onChange={(e) => setNewInsumo({...newInsumo, nombre: e.target.value})}
-                  className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-primary"
-                  placeholder="Ej. Vaso Plástico 16oz"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-2">Imagen Referencial</label>
-                <input
-                  type="file"
-                  accept="image/jpeg, image/png"
-                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                  className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-primary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-2">Sede Inicial (Opcional)</label>
-                <select
-                  value={newInsumo.sedeId}
-                  onChange={(e) => setNewInsumo({...newInsumo, sedeId: e.target.value})}
-                  className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="">Ninguna (Global)</option>
-                  {assignedSedes.filter(s => s.id !== 'all').map((s: any) => <option key={s.id} value={s.id}>{s.nombre}</option>)}
-                </select>
-              </div>
-              {newInsumo.sedeId && (
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Stock Inicial en Sede</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={newInsumo.stock}
-                    onChange={(e) => setNewInsumo({...newInsumo, stock: e.target.value})}
-                    className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-primary"
-                    placeholder="Ej. 100"
-                  />
-                </div>
-              )}
-              <div className="flex gap-4 mt-8">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-4 py-3 border border-border rounded-xl font-semibold hover:bg-secondary transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-colors"
-                >
-                  {isSubmitting ? 'Guardando...' : 'Crear Insumo'}
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
-      )}
+
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
