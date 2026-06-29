@@ -31,6 +31,19 @@ export default function StaffSelectorPage() {
   }, [router]);
 
   const handleSelect = async (module: string) => {
+    try {
+      const res = await api.get('/taquilla/caja/estado');
+      if (res.data.estado === 'ABIERTA') {
+        const currentModule = localStorage.getItem('staff_module');
+        if (currentModule && currentModule !== module && currentModule !== 'NONE') {
+          toast.error(`Debes cerrar tu caja en ${currentModule} antes de cambiar a ${module}`);
+          return;
+        }
+      }
+    } catch (err) {
+      console.error('Error verificando estado de caja antes de cambiar módulo', err);
+    }
+
     // Guardamos la decisión localmente (opcional)
     localStorage.setItem('staff_module', module);
     try {

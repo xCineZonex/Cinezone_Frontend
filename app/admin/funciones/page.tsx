@@ -111,8 +111,12 @@ export default function AdminFuncionesPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
-                        <span className="px-2 py-0.5 bg-secondary text-secondary-foreground rounded text-xs">{funcion.idioma}</span>
-                        <span className="px-2 py-0.5 bg-primary/20 text-primary rounded text-xs">{funcion.formatoProyeccion}</span>
+                        <span className="px-2 py-0.5 bg-secondary text-secondary-foreground rounded text-xs">
+                          {funcion.idioma === 'ESPANOL' ? 'Español' : funcion.idioma === 'SUBTITULADA' ? 'Subtitulada' : funcion.idioma === 'INGLES_DOBLADO' ? 'Inglés Original' : funcion.idioma}
+                        </span>
+                        <span className="px-2 py-0.5 bg-primary/20 text-primary rounded text-xs">
+                          {funcion.formatoProyeccion === 'FORMAT_2D' ? '2D' : funcion.formatoProyeccion === 'FORMAT_3D' ? '3D' : funcion.formatoProyeccion === 'FORMAT_4DX' ? '4DX' : funcion.formatoProyeccion}
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">

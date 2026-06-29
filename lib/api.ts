@@ -10,8 +10,8 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      // Token expirado o inválido
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Token expirado, inválido o acceso denegado
       if (typeof window !== 'undefined') {
         localStorage.removeItem('rol');
         try {

@@ -47,8 +47,7 @@ export default function NuevaDulceriaPage() {
 
   const fetchInsumos = async () => {
     try {
-      // InventoryController ignores sedeId if it just returns all products that are insumos
-      const res = await api.get('/admin/inventory/insumos/sede/0');
+      const res = await api.get('/admin/catalogo/productos?esInsumo=true');
       setInsumosDisponibles(res.data);
     } catch (error) {
       console.error('Error fetching insumos:', error);
