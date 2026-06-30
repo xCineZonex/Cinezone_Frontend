@@ -388,8 +388,12 @@ export default function CheckoutEntradasPage() {
                               <button 
                                 onClick={() => handleBenefitChange(String(b.id), 1)} 
                                 disabled={!doesNotExceedSeats || !hasEnoughPoints || !hasEnoughLimit} 
-                                className="w-8 h-8 flex items-center justify-center rounded-md bg-blue-500 text-white hover:bg-blue-400 transition-colors disabled:opacity-50"
-                                title={!hasEnoughLimit ? "Límite mensual alcanzado" : ""}
+                                className="w-8 h-8 flex items-center justify-center rounded-md bg-blue-500 text-white hover:bg-blue-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title={
+                                  !doesNotExceedSeats ? `Debes seleccionar al menos ${tCount} butaca(s) extra para este beneficio` :
+                                  !hasEnoughPoints ? `No tienes suficientes puntos (requiere ${b.pointsRequired})` :
+                                  !hasEnoughLimit ? "Límite mensual alcanzado" : ""
+                                }
                               >
                                 <Plus className="w-4 h-4" />
                               </button>
