@@ -143,6 +143,20 @@ export default function CheckoutPagoPage() {
     }
   }, [bookingExpiresAt, clearCart]);
 
+  // Heartbeat para renovar el lock en Redis cada 30 segundos
+  useEffect(() => {
+    if (!funcionId || asientos.length === 0) return;
+    const heartbeatInterval = setInterval(() => {
+      asientos.forEach(a => {
+        api.post('/reservas/asientos/heartbeat', {
+          funcionId,
+          asientoId: a.asientoId
+        }).catch(err => console.error("Error enviando heartbeat:", err));
+      });
+    }, 30000);
+    return () => clearInterval(heartbeatInterval);
+  }, [funcionId, asientos]);
+
   const handlePayment = async () => {
     if (metodoPago === 'EFECTIVO') {
       const efectivo = Number(efectivoRecibido);
