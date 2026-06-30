@@ -117,6 +117,34 @@ export default function EditarFuncionPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validaciones de horario
+    const dt = new Date(formData.fechaHora);
+    const h = dt.getHours();
+    const m = dt.getMinutes();
+    const timeInMinutes = h * 60 + m;
+    
+    const selectedMovie = peliculas.find(p => p.id.toString() === formData.movieId);
+    const isEstreno = selectedMovie?.estado === 'PRE_ESTRENO' || selectedMovie?.estado === 'ESTRENO' || 
+                      (selectedMovie?.fechaEstreno && selectedMovie.fechaEstreno >= formData.fechaHora.split('T')[0]);
+
+    const minTime = 16 * 60; // 4:00 PM
+    const maxTimeRegular = 22 * 60; // 10:00 PM
+    
+    const isMidnight = h === 0;
+
+    if (!isEstreno) {
+      if (timeInMinutes < minTime || timeInMinutes > maxTimeRegular) {
+        toast.error('Para funciones regulares, el horario permitido es de 4:00 PM a 10:00 PM.');
+        return;
+      }
+    } else {
+      if (!isMidnight && (timeInMinutes < minTime)) {
+        toast.error('Para funciones de estreno, el horario permitido es de 4:00 PM a 12:00 AM.');
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -139,6 +167,13 @@ export default function EditarFuncionPage() {
   if (fetching) return <div className="p-8 text-center animate-pulse">Cargando...</div>;
 
   const selectedDate = formData.fechaHora ? formData.fechaHora.split('T')[0] : new Date().toISOString().split('T')[0];
+
+  const now = new Date();
+  const tzOffset = now.getTimezoneOffset() * 60000; // offset in milliseconds
+  const localISOTime = new Date(Date.now() - tzOffset).toISOString().slice(0, 16);
+  
+  const minDateTime = localISOTime;
+  const maxDateTime = `${now.getFullYear()}-12-31T23:59`;
 
   const availableMovies = peliculas.filter(p => {
     if (p.estado === 'RETIRADA') return false;
@@ -235,6 +270,8 @@ export default function EditarFuncionPage() {
                 type="datetime-local"
                 name="fechaHora"
                 required
+                min={minDateTime}
+                max={maxDateTime}
                 value={formData.fechaHora}
                 onChange={handleChange}
                 className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all dark:[color-scheme:dark]"
