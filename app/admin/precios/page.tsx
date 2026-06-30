@@ -128,13 +128,15 @@ function PriceRow({ base, sedePrices, isSuperAdmin, activeSedeId, handleSaveLoca
                 </button>
               </div>
 
-              <button
-                onClick={() => setShowDaily(!showDaily)}
-                className={`ml-2 p-2.5 rounded-xl border transition-colors ${showDaily ? 'bg-primary/20 border-primary/50 text-primary' : 'border-zinc-700 hover:border-zinc-500 text-zinc-400'}`}
-                title="Precios por Día"
-              >
-                <CalendarDays className="w-5 h-5" />
-              </button>
+              {base.ticketType !== 'BENEFICIO' && (
+                <button
+                  onClick={() => setShowDaily(!showDaily)}
+                  className={`ml-2 p-2.5 rounded-xl border transition-colors ${showDaily ? 'bg-primary/20 border-primary/50 text-primary' : 'border-zinc-700 hover:border-zinc-500 text-zinc-400'}`}
+                  title="Precios por Día"
+                >
+                  <CalendarDays className="w-5 h-5" />
+                </button>
+              )}
             </div>
         )}
         
