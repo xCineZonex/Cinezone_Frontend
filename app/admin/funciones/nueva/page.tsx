@@ -64,10 +64,21 @@ export default function NuevaFuncionPage() {
   }, [formData.cinemaId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    
+    if (name === 'movieId') {
+      const selectedMov = peliculas.find(p => p.id.toString() === value);
+      setFormData({
+        ...formData,
+        [name]: value,
+        idioma: selectedMov?.idioma || 'ESPANOL'
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -244,9 +255,10 @@ export default function NuevaFuncionPage() {
               <select
                 name="idioma"
                 required
+                disabled
                 value={formData.idioma}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-zinc-400 cursor-not-allowed"
               >
                 <option value="ESPANOL">Español (Doblada)</option>
                 <option value="SUBTITULADA">Subtitulada</option>
