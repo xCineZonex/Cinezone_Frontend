@@ -98,7 +98,7 @@ export default function CheckoutPagoPage() {
     }
   };
 
-  // Redirigir si el carrito está vacío
+  // Redirigir si el carrito está vacío o el flujo está incompleto
   useEffect(() => {
     const isTaquilla = ['TAQUILLA', 'DULCERIA', 'ADMIN_SEDE', 'STAFF'].includes(localStorage.getItem('rol') || '');
     const isDulceriaOnly = !funcionId && snacks.length > 0;
@@ -107,10 +107,18 @@ export default function CheckoutPagoPage() {
       if (isTaquilla && isDulceriaOnly) {
         // Permitir continuar (solo dulcería)
       } else {
+        toast.error('Carrito vacío o sesión expirada.');
         router.push('/cartelera');
       }
+    } else if (funcionId && asientos.length > 0) {
+      // Flow Security: asegurar que pasó por la pantalla de entradas y completó los tickets
+      const totalTickets = tickets.reduce((acc, t) => acc + t.cantidad, 0);
+      if (totalTickets !== asientos.length) {
+        toast.error('Flujo incompleto. Seleccione sus entradas.');
+        router.push('/checkout/entradas');
+      }
     }
-  }, [funcionId, asientos.length, snacks.length, router]);
+  }, [funcionId, asientos.length, snacks.length, tickets, router]);
 
   // Temporizador
   useEffect(() => {
