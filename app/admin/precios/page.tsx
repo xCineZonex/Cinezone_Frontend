@@ -476,14 +476,14 @@ export default function PreciosAdminPage() {
               </div>
 
               {/* Entradas Beneficio */}
-              {basePrices.some(b => b.ticketType === 'BENEFICIO') && (
-                <div className="mt-8">
-                  <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2 border-b border-zinc-800 pb-2">
-                    <Activity className="w-5 h-5 text-amber-500" /> Entradas de Beneficio / Promoción
-                  </h2>
-                  <div className="flex flex-col gap-5">
-                    <AnimatePresence>
-                      {basePrices.filter(b => b.ticketType === 'BENEFICIO').map(base => (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2 border-b border-zinc-800 pb-2">
+                  <Activity className="w-5 h-5 text-amber-500" /> Entradas de Beneficio / Promoción
+                </h2>
+                <div className="flex flex-col gap-5">
+                  <AnimatePresence>
+                    {basePrices.filter(b => b.ticketType === 'BENEFICIO').length > 0 ? (
+                      basePrices.filter(b => b.ticketType === 'BENEFICIO').map(base => (
                         <PriceRow 
                           key={base.id} 
                           base={base} 
@@ -497,11 +497,17 @@ export default function PreciosAdminPage() {
                             setShowBaseForm(true);
                           }}
                         />
-                      ))}
-                    </AnimatePresence>
-                  </div>
+                      ))
+                    ) : (
+                      <div className="text-center p-8 bg-zinc-900/30 rounded-2xl border border-zinc-800/50">
+                        <Activity className="w-8 h-8 text-zinc-600 mx-auto mb-3" />
+                        <p className="text-zinc-500 font-medium">Aún no hay entradas de Beneficio configuradas.</p>
+                        {isSuperAdmin && <p className="text-zinc-400 text-sm mt-1">Crea una nueva desde "Nuevo Boleto Base".</p>}
+                      </div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              )}
+              </div>
             </>
           )}
         </div>
