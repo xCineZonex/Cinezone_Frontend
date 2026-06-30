@@ -367,13 +367,56 @@ export default function CheckoutEntradasPage() {
                                              (benFmt === '3D' && showFmt === 'FORMAT_3D') ||
                                              (benFmt === 'FORMAT_3D' && showFmt === '3D');
 
+                      const getTierColors = (tierName: string) => {
+                        const t = (tierName || '').toLowerCase();
+                        if (t.includes('negro') || t.includes('black')) return {
+                          bg: 'from-zinc-800/40 to-background border-zinc-500/30',
+                          blob: 'bg-zinc-500/10',
+                          title: 'text-zinc-300',
+                          badgeBg: 'bg-zinc-500/20 text-zinc-300 border-zinc-500/30',
+                          btnBg: 'bg-zinc-500/20 text-zinc-400 hover:bg-zinc-600 hover:text-white',
+                          btnHoverText: 'hover:text-zinc-400',
+                          border: 'border-zinc-500/30'
+                        };
+                        if (t.includes('oro') || t.includes('gold')) return {
+                          bg: 'from-amber-900/40 to-background border-amber-500/30',
+                          blob: 'bg-amber-500/10',
+                          title: 'text-amber-400',
+                          badgeBg: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+                          btnBg: 'bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white',
+                          btnHoverText: 'hover:text-amber-400',
+                          border: 'border-amber-500/30'
+                        };
+                        if (t.includes('plata') || t.includes('silver')) return {
+                          bg: 'from-slate-700/40 to-background border-slate-400/30',
+                          blob: 'bg-slate-400/10',
+                          title: 'text-slate-300',
+                          badgeBg: 'bg-slate-400/20 text-slate-300 border-slate-400/30',
+                          btnBg: 'bg-slate-400/10 text-slate-400 hover:bg-slate-400 hover:text-white',
+                          btnHoverText: 'hover:text-slate-300',
+                          border: 'border-slate-400/30'
+                        };
+                        // Default to blue
+                        return {
+                          bg: 'from-blue-900/40 to-background border-blue-500/30',
+                          blob: 'bg-blue-500/10',
+                          title: 'text-blue-400',
+                          badgeBg: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+                          btnBg: 'bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white',
+                          btnHoverText: 'hover:text-blue-400',
+                          border: 'border-blue-500/30'
+                        };
+                      };
+
+                      const colors = getTierColors(b.tierName);
+
                       return (
-                        <div key={b.id} className="bg-gradient-to-br from-blue-900/40 to-background border border-blue-500/30 p-4 rounded-xl relative overflow-hidden">
-                          <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 rounded-bl-full" />
+                        <div key={b.id} className={`bg-gradient-to-br ${colors.bg} p-4 rounded-xl relative overflow-hidden transition-colors`}>
+                          <div className={`absolute top-0 right-0 w-16 h-16 ${colors.blob} rounded-bl-full transition-colors`} />
                           <div className="flex justify-between items-start mb-1">
-                            <h4 className="font-bold text-blue-400">{b.name}</h4>
+                            <h4 className={`font-bold ${colors.title}`}>{b.name}</h4>
                             {bMonthlyLimit > 0 && (
-                              <span className="text-[10px] font-bold bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/30">
+                              <span className={`text-[10px] font-bold ${colors.badgeBg} px-2 py-0.5 rounded-full border`}>
                                 Quedan {remainingInMonth + (currentSelected * tCount)}/{bMonthlyLimit}
                               </span>
                             )}
@@ -387,7 +430,7 @@ export default function CheckoutEntradasPage() {
                               <p className="font-black text-xl text-foreground">
                                 {b.price === 0 ? <span className="text-yellow-500">GRATIS</span> : `S/ ${b.price.toFixed(2)}`}
                               </p>
-                              {b.price !== 0 && <span className="bg-blue-500/20 text-blue-400 text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-wider mt-1 inline-block">Precio Socio</span>}
+                              {b.price !== 0 && <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-wider mt-1 inline-block ${colors.badgeBg}`}>Precio Socio</span>}
                             </div>
                             <div className="flex items-center gap-3">
                               {!hasValidFormat && (
@@ -395,18 +438,18 @@ export default function CheckoutEntradasPage() {
                                   Solo para {benFmt}
                                 </div>
                               )}
-                              <div className="flex items-center bg-background/50 rounded-lg p-1 border border-blue-500/20">
+                              <div className={`flex items-center bg-background/50 rounded-lg p-1 border ${colors.border}`}>
                                 <button 
                                   onClick={() => handleBenefitChange(String(b.id), -1)}
                                   disabled={currentSelected === 0}
-                                  className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-blue-500/20 text-muted-foreground hover:text-blue-400 disabled:opacity-30 transition-colors"
-                                ><Minus className="w-4 h-4 text-blue-400"/></button>
+                                  className={`w-8 h-8 rounded-md flex items-center justify-center hover:bg-white/10 text-muted-foreground ${colors.btnHoverText} disabled:opacity-30 transition-colors`}
+                                ><Minus className={`w-4 h-4 ${colors.title}`} /></button>
                                 <span className="w-6 text-center font-bold text-foreground text-sm">{currentSelected}</span>
                                 <button 
                                   onClick={() => handleBenefitChange(String(b.id), 1)}
                                   disabled={!doesNotExceedSeats || !hasEnoughLimit || !hasEnoughPoints || !hasValidFormat}
                                   title={!hasValidFormat ? `Este beneficio solo aplica para funciones ${benFmt}` : (!hasEnoughPoints ? 'No tienes suficientes puntos' : (!hasEnoughLimit ? 'Alcanzaste el límite mensual' : ''))}
-                                  className="w-8 h-8 rounded-md flex items-center justify-center bg-blue-500 text-white hover:bg-blue-400 disabled:opacity-30 transition-colors disabled:cursor-not-allowed tooltip-trigger"
+                                  className={`w-8 h-8 rounded-md flex items-center justify-center ${colors.btnBg} disabled:opacity-30 transition-colors disabled:cursor-not-allowed tooltip-trigger`}
                                 ><Plus className="w-4 h-4"/></button>
                               </div>
                             </div>
