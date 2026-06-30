@@ -19,7 +19,7 @@ export default function AdminBeneficiosPage() {
     price: '',
     pointsRequired: '0',
     ticketCount: 1,
-    tierId: 0,
+    tierId: '',
     monthlyLimit: 0,
     formato: 'TODOS'
   });
@@ -58,7 +58,7 @@ export default function AdminBeneficiosPage() {
       });
     } else {
       setEditingId(null);
-      setFormData({ name: '', price: '', pointsRequired: '0', ticketCount: 1, tierId: 0, monthlyLimit: 0, formato: 'TODOS' });
+      setFormData({ name: '', price: '', pointsRequired: '0', ticketCount: 1, tierId: '', monthlyLimit: 0, formato: 'TODOS' });
     }
     setIsModalOpen(true);
   };
@@ -369,12 +369,13 @@ export default function AdminBeneficiosPage() {
                       required 
                       value={formData.formato} 
                       onChange={e => setFormData({...formData, formato: e.target.value})} 
-                      className="w-full px-5 py-4 bg-secondary/50 border border-border rounded-2xl focus:outline-none focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all font-bold text-xl appearance-none"
+                      className="w-full px-5 py-4 bg-secondary/50 border border-border rounded-2xl focus:outline-none focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all font-bold text-base appearance-none"
                     >
                       <option value="TODOS">Cualquier Formato (TODOS)</option>
-                      <option value="2D">2D</option>
-                      <option value="3D">3D</option>
+                      <option value="FORMAT_2D">2D</option>
+                      <option value="FORMAT_3D">3D</option>
                       <option value="IMAX">IMAX</option>
+                      <option value="FORMAT_4DX">4DX</option>
                     </select>
                   </div>
                   <div className="space-y-2">
