@@ -18,9 +18,10 @@ export default function AdminBeneficiosPage() {
     name: '',
     price: '',
     pointsRequired: '0',
-    ticketCount: '1',
-    tierId: '',
-    monthlyLimit: '0'
+    ticketCount: 1,
+    tierId: 0,
+    monthlyLimit: 0,
+    formato: 'TODOS'
   });
 
   useEffect(() => {
@@ -50,13 +51,14 @@ export default function AdminBeneficiosPage() {
         name: benefit.name,
         price: (benefit.price || 0).toString(),
         pointsRequired: (benefit.pointsRequired || 0).toString(),
-        ticketCount: (benefit.ticketCount || 1).toString(),
-        tierId: (benefit.tierId || '').toString(),
-        monthlyLimit: (benefit.monthlyLimit || 0).toString()
+        ticketCount: benefit.ticketCount || 1,
+        tierId: benefit.tierId || 0,
+        monthlyLimit: benefit.monthlyLimit || 0,
+        formato: benefit.formato || 'TODOS'
       });
     } else {
       setEditingId(null);
-      setFormData({ name: '', price: '', pointsRequired: '0', ticketCount: '1', tierId: '', monthlyLimit: '0' });
+      setFormData({ name: '', price: '', pointsRequired: '0', ticketCount: 1, tierId: 0, monthlyLimit: 0, formato: 'TODOS' });
     }
     setIsModalOpen(true);
   };
@@ -359,6 +361,20 @@ export default function AdminBeneficiosPage() {
                       {niveles.map(n => (
                         <option key={n.id} value={n.id}>{n.name}</option>
                       ))}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-muted-foreground">Formato Aplicable *</label>
+                    <select 
+                      required 
+                      value={formData.formato} 
+                      onChange={e => setFormData({...formData, formato: e.target.value})} 
+                      className="w-full px-5 py-4 bg-secondary/50 border border-border rounded-2xl focus:outline-none focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all font-bold text-xl appearance-none"
+                    >
+                      <option value="TODOS">Cualquier Formato (TODOS)</option>
+                      <option value="2D">2D</option>
+                      <option value="3D">3D</option>
+                      <option value="IMAX">IMAX</option>
                     </select>
                   </div>
                   <div className="space-y-2">

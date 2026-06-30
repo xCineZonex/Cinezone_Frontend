@@ -357,6 +357,15 @@ export default function CheckoutEntradasPage() {
                       const hasEnoughLimit = remainingInMonth >= tCount;
                       const hasEnoughPoints = b.pointsRequired === 0 || (profile.puntos || 0) >= (currentSelected + 1) * b.pointsRequired;
                       const doesNotExceedSeats = totalSelected + tCount <= seatsCount;
+                      
+                      const showFmt = showtime?.formato || '2D';
+                      const benFmt = b.formato || 'TODOS';
+                      const hasValidFormat = benFmt === 'TODOS' || 
+                                             benFmt === showFmt || 
+                                             (benFmt === '2D' && showFmt === 'FORMAT_2D') || 
+                                             (benFmt === 'FORMAT_2D' && showFmt === '2D') ||
+                                             (benFmt === '3D' && showFmt === 'FORMAT_3D') ||
+                                             (benFmt === 'FORMAT_3D' && showFmt === '3D');
 
                       return (
                         <div key={b.id} className="bg-gradient-to-br from-blue-900/40 to-background border border-blue-500/30 p-4 rounded-xl relative overflow-hidden">
@@ -380,23 +389,26 @@ export default function CheckoutEntradasPage() {
                               </p>
                               {b.price !== 0 && <span className="bg-blue-500/20 text-blue-400 text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-wider mt-1 inline-block">Precio Socio</span>}
                             </div>
-                            <div className="flex items-center gap-3 bg-background/50 rounded-lg p-1 border border-blue-500/20">
-                              <button onClick={() => handleBenefitChange(String(b.id), -1)} disabled={currentSelected <= 0} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-blue-500/20 disabled:opacity-50 transition-colors">
-                                <Minus className="w-4 h-4 text-blue-400" />
-                              </button>
-                              <span className="font-bold w-4 text-center">{currentSelected}</span>
-                              <button 
-                                onClick={() => handleBenefitChange(String(b.id), 1)} 
-                                disabled={!doesNotExceedSeats || !hasEnoughPoints || !hasEnoughLimit} 
-                                className="w-8 h-8 flex items-center justify-center rounded-md bg-blue-500 text-white hover:bg-blue-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                title={
-                                  !doesNotExceedSeats ? `Debes seleccionar al menos ${tCount} butaca(s) extra para este beneficio` :
-                                  !hasEnoughPoints ? `No tienes suficientes puntos (requiere ${b.pointsRequired})` :
-                                  !hasEnoughLimit ? "Límite mensual alcanzado" : ""
-                                }
-                              >
-                                <Plus className="w-4 h-4" />
-                              </button>
+                            <div className="flex items-center gap-3">
+                              {!hasValidFormat && (
+                                <div className="text-[10px] bg-red-500/20 text-red-400 px-2 py-1 rounded border border-red-500/30 text-center max-w-[100px] leading-tight font-bold">
+                                  Solo para {benFmt}
+                                </div>
+                              )}
+                              <div className="flex items-center bg-background/50 rounded-lg p-1 border border-blue-500/20">
+                                <button 
+                                  onClick={() => handleBenefitChange(String(b.id), -1)}
+                                  disabled={currentSelected === 0}
+                                  className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-blue-500/20 text-muted-foreground hover:text-blue-400 disabled:opacity-30 transition-colors"
+                                ><Minus className="w-4 h-4 text-blue-400"/></button>
+                                <span className="w-6 text-center font-bold text-foreground text-sm">{currentSelected}</span>
+                                <button 
+                                  onClick={() => handleBenefitChange(String(b.id), 1)}
+                                  disabled={!doesNotExceedSeats || !hasEnoughLimit || !hasEnoughPoints || !hasValidFormat}
+                                  title={!hasValidFormat ? `Este beneficio solo aplica para funciones ${benFmt}` : (!hasEnoughPoints ? 'No tienes suficientes puntos' : (!hasEnoughLimit ? 'Alcanzaste el límite mensual' : ''))}
+                                  className="w-8 h-8 rounded-md flex items-center justify-center bg-blue-500 text-white hover:bg-blue-400 disabled:opacity-30 transition-colors disabled:cursor-not-allowed tooltip-trigger"
+                                ><Plus className="w-4 h-4"/></button>
+                              </div>
                             </div>
                           </div>
                         </div>
