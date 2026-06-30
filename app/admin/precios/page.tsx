@@ -277,10 +277,10 @@ export default function PreciosAdminPage() {
     }
     try {
       const payload = {
-        cinema: { id: activeSedeId },
-        ticketBasePrice: { id: basePriceId },
-        localPrice: localPrice,
-        isActive: isActive,
+        sedeId: parseInt(activeSedeId),
+        basePriceId: basePriceId,
+        localPrice,
+        isActive,
         priceMonday: dailyPrices?.priceMonday ? parseFloat(dailyPrices.priceMonday) : null,
         priceTuesday: dailyPrices?.priceTuesday ? parseFloat(dailyPrices.priceTuesday) : null,
         priceWednesday: dailyPrices?.priceWednesday ? parseFloat(dailyPrices.priceWednesday) : null,
