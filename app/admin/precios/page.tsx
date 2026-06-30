@@ -373,7 +373,6 @@ export default function PreciosAdminPage() {
                       <option value="NINO">NIÑO</option>
                       <option value="TERCERA_EDAD">TERCERA EDAD</option>
                       <option value="DISCAPACIDAD">DISCAPACIDAD (CONADIS)</option>
-                      <option value="BENEFICIO">BENEFICIO / PROMOCIÓN</option>
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -502,7 +501,7 @@ export default function PreciosAdminPage() {
                       <div className="text-center p-8 bg-zinc-900/30 rounded-2xl border border-zinc-800/50">
                         <Activity className="w-8 h-8 text-zinc-600 mx-auto mb-3" />
                         <p className="text-zinc-500 font-medium">Aún no hay entradas de Beneficio configuradas.</p>
-                        {isSuperAdmin && <p className="text-zinc-400 text-sm mt-1">Crea una nueva desde "Nuevo Boleto Base".</p>}
+                        {isSuperAdmin && <p className="text-zinc-400 text-sm mt-1">Crea una nueva desde el panel de Beneficios.</p>}
                       </div>
                     )}
                   </AnimatePresence>
