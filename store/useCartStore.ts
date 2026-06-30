@@ -41,6 +41,7 @@ interface CartState {
   snacks: Snack[];
   bookingExpiresAt: number | null;
   lastPurchaseResponse: any | null;
+  idempotencyKey: string | null;
   
   setFuncion: (id: number, movieData?: any) => void;
   startBookingTimer: (minutes: number) => void;
@@ -51,6 +52,7 @@ interface CartState {
   updateSnackQuantity: (productoId: number, cantidad: number) => void;
   clearCart: (keepReceipt?: boolean) => void;
   setLastPurchaseResponse: (response: any) => void;
+  generateIdempotencyKey: () => void;
   
   getTotalAsientos: () => number;
   getTotalTickets: () => number;
@@ -77,6 +79,7 @@ export const useCartStore = create<CartState>()(
       snacks: [],
       bookingExpiresAt: null,
       lastPurchaseResponse: null,
+      idempotencyKey: null,
 
       setFuncion: (id, movieData) =>
         set((state) => ({
@@ -133,6 +136,12 @@ export const useCartStore = create<CartState>()(
 
       setLastPurchaseResponse: (response) => set({ lastPurchaseResponse: response }),
 
+      generateIdempotencyKey: () => {
+        if (!get().idempotencyKey) {
+          set({ idempotencyKey: crypto.randomUUID() });
+        }
+      },
+
       clearCart: (keepReceipt = false) => {
         const currentResponse = get().lastPurchaseResponse;
         set({
@@ -151,6 +160,7 @@ export const useCartStore = create<CartState>()(
           snacks: [],
           bookingExpiresAt: null,
           lastPurchaseResponse: keepReceipt ? currentResponse : null,
+          idempotencyKey: null,
         });
       },
 

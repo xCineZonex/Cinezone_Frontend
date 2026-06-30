@@ -24,7 +24,8 @@ export default function CheckoutPagoPage() {
     getGranTotal,
     bookingExpiresAt,
     clearCart,
-    setLastPurchaseResponse
+    setLastPurchaseResponse,
+    idempotencyKey
   } = useCartStore();
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -195,7 +196,8 @@ export default function CheckoutPagoPage() {
         montoTotalPago: Number(getGranTotal()),
         numeroTarjeta: "4557 **** **** 0012",
         titularTarjeta: (!funcionId && snacks.length > 0) ? newClient.nombre : "CLIENTE CINEZONE",
-        metodoPago: metodoPago
+        metodoPago: metodoPago,
+        idempotencyKey: idempotencyKey
       };
 
       if (funcionId && taquillaCliente) {

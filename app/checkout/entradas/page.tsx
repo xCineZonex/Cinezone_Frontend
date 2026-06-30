@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 
 export default function CheckoutEntradasPage() {
   const router = useRouter();
-  const { funcionId, pelicula, asientos, setTickets, bookingExpiresAt } = useCartStore();
+  const { funcionId, pelicula, asientos, setTickets, bookingExpiresAt, generateIdempotencyKey } = useCartStore();
   const seatsCount = asientos.length;
 
   const [generalTickets, setGeneralTickets] = useState<any[]>([]);
@@ -33,6 +33,7 @@ export default function CheckoutEntradasPage() {
       router.push('/');
       return;
     }
+    generateIdempotencyKey(); // Generar llave única de idempotencia para la transacción
     fetchData();
   }, [funcionId]);
 
