@@ -19,6 +19,7 @@ export default function PeliculaPage(props: { params: Promise<{ id: string }> })
   
   const [selectedSede, setSelectedSede] = useState<number | null>(null);
   const [selectedCiudad, setSelectedCiudad] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingFunciones, setLoadingFunciones] = useState(false);
   const [isStaff, setIsStaff] = useState(false);
@@ -30,6 +31,32 @@ export default function PeliculaPage(props: { params: Promise<{ id: string }> })
     acc[ciudad].push(sede);
     return acc;
   }, {});
+
+  // Funciones helper para fechas locales
+  const getLocalDateStr = (dateRaw: string) => {
+    const d = new Date(dateRaw);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const funcionesPorFecha = funciones.reduce((acc: Record<string, any[]>, funcion: any) => {
+    const fechaRaw = funcion.fechaHora || funcion.horaInicio;
+    if (!fechaRaw) return acc;
+    const dateStr = getLocalDateStr(fechaRaw);
+    if (!acc[dateStr]) acc[dateStr] = [];
+    acc[dateStr].push(funcion);
+    return acc;
+  }, {});
+
+  const fechasDisponibles = Object.keys(funcionesPorFecha).sort();
+
+  useEffect(() => {
+    if (fechasDisponibles.length > 0 && (!selectedDate || !fechasDisponibles.includes(selectedDate))) {
+      setSelectedDate(fechasDisponibles[0]);
+    }
+  }, [funciones, selectedDate]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -322,38 +349,70 @@ export default function PeliculaPage(props: { params: Promise<{ id: string }> })
                   <p className="text-sm text-muted-foreground/70 mt-1">Elige una ciudad y un cine para ver los horarios disponibles.</p>
                 </div>
               ) : funciones.length > 0 ? (
-                <div key="list-funciones" className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {funciones.map((funcion, idx) => {
-                    // El campo en el DTO de Showtime suele ser fechaHora
-                    const fechaRaw = funcion.fechaHora || funcion.horaInicio;
-                    const fecha = fechaRaw ? new Date(fechaRaw) : new Date();
-                    const hora = fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const dia = fecha.toLocaleDateString([], { weekday: 'short', day: '2-digit', month: 'short' });
-
-                    return (
-                      <div key={funcion.funcionId || funcion.id || `func-${idx}`} className="bg-background border border-border p-4 rounded-xl flex flex-col justify-between gap-4 hover:border-primary/50 transition-colors">
-                        <div>
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="text-lg font-black text-primary">{hora}</div>
-                            <div className="text-xs px-2 py-1 bg-secondary rounded-md font-semibold">{dia}</div>
-                          </div>
-                          <div className="text-sm text-muted-foreground font-medium">
-                            Sala: {funcion.auditoriumNombre || funcion.salaNombre || 'N/A'}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {funcion.formatoProyeccion || funcion.formato} · {funcion.idioma}
-                          </div>
-                        </div>
+                <div key="list-funciones" className="space-y-6">
+                  {/* Selector de Fechas */}
+                  {fechasDisponibles.length > 0 && (
+                    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-thin">
+                      {fechasDisponibles.map((fecha) => {
+                        const dateObj = new Date(fecha + 'T12:00:00'); // Mediodía local para evitar desfases
+                        const isSelected = selectedDate === fecha;
                         
-                        <button
-                          onClick={() => handleBuyTicket(funcion)}
-                          className="w-full py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-bold transition-all"
-                        >
-                          Comprar Entrada
-                        </button>
-                      </div>
-                    );
-                  })}
+                        const diaSemana = dateObj.toLocaleDateString('es-PE', { weekday: 'short' });
+                        const diaNumero = dateObj.getDate();
+                        const mes = dateObj.toLocaleDateString('es-PE', { month: 'short' });
+
+                        return (
+                          <button
+                            key={fecha}
+                            onClick={() => setSelectedDate(fecha)}
+                            className={`flex flex-col items-center justify-center min-w-[5rem] py-3 rounded-2xl border transition-all ${
+                              isSelected
+                              ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20 scale-105'
+                              : 'bg-background hover:bg-secondary border-border text-foreground'
+                            }`}
+                          >
+                            <span className="text-xs uppercase font-bold opacity-80">{diaSemana}</span>
+                            <span className="text-xl font-black">{diaNumero}</span>
+                            <span className="text-xs font-semibold">{mes}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Grid de Funciones */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {selectedDate && funcionesPorFecha[selectedDate]?.map((funcion: any, idx: number) => {
+                      const fechaRaw = funcion.fechaHora || funcion.horaInicio;
+                      const fecha = fechaRaw ? new Date(fechaRaw) : new Date();
+                      const hora = fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                      const dia = fecha.toLocaleDateString([], { weekday: 'short', day: '2-digit', month: 'short' });
+
+                      return (
+                        <div key={funcion.funcionId || funcion.id || `func-${idx}`} className="bg-background border border-border p-4 rounded-xl flex flex-col justify-between gap-4 hover:border-primary/50 transition-colors">
+                          <div>
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="text-lg font-black text-primary">{hora}</div>
+                              <div className="text-xs px-2 py-1 bg-secondary rounded-md font-semibold">{dia}</div>
+                            </div>
+                            <div className="text-sm text-muted-foreground font-medium">
+                              Sala: {funcion.auditoriumNombre || funcion.salaNombre || 'N/A'}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {funcion.formatoProyeccion || funcion.formato} · {funcion.idioma}
+                            </div>
+                          </div>
+                          
+                          <button
+                            onClick={() => handleBuyTicket(funcion)}
+                            className="w-full py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-bold transition-all"
+                          >
+                            Comprar Entrada
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               ) : (
                 <div className="h-48 flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl text-center p-6 bg-secondary/20">
