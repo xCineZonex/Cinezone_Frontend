@@ -26,13 +26,22 @@ export default function ReclamacionesPage() {
 
   useEffect(() => {
     // Check if logged in and prepopulate email
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsLoggedIn(true);
-      const userEmail = localStorage.getItem('correo_usuario') || ''; // Adjust key as per login if needed
-      if (userEmail) {
-        setFormData(prev => ({ ...prev, email: userEmail }));
-      }
+    const rol = localStorage.getItem('rol');
+    if (rol) {
+      const fetchProfile = async () => {
+        try {
+          const response = await api.get('/users/me');
+          if (response.data && response.data.correo) {
+            setIsLoggedIn(true);
+            setFormData(prev => ({ ...prev, email: response.data.correo }));
+          }
+        } catch (error) {
+          // Si falla, significa que la sesión expiró o no hay cookie
+          setIsLoggedIn(false);
+          localStorage.removeItem('rol');
+        }
+      };
+      fetchProfile();
     }
 
     const fetchSedes = async () => {
@@ -56,7 +65,7 @@ export default function ReclamacionesPage() {
     }
     
     if (name === 'numeroDocumento') {
-      const val = (formData.tipoDocumento === 'PASAPORTE' || formData.tipoDocumento === 'CE')
+      const val = (formData.tipoDocumento === 'PASAPORTE')
         ? value.replace(/[^a-zA-Z0-9]/g, '')
         : value.replace(/[^0-9]/g, '');
       setFormData(prev => ({ ...prev, [name]: val }));
@@ -114,7 +123,7 @@ export default function ReclamacionesPage() {
 
   const getMaxLength = () => {
     if (formData.tipoDocumento === 'DNI') return 8;
-    if (formData.tipoDocumento === 'CE') return 12;
+    if (formData.tipoDocumento === 'CE') return 9;
     return 15;
   };
 
@@ -174,8 +183,9 @@ export default function ReclamacionesPage() {
                   value={formData.numeroDocumento}
                   onChange={handleChange}
                   maxLength={getMaxLength()}
-                  pattern={formData.tipoDocumento === 'DNI' ? "[0-9]+" : "[a-zA-Z0-9]+"}
-                  title={formData.tipoDocumento === 'DNI' ? "Solo debe contener números" : "Solo letras y números permitidos"}
+                  minLength={formData.tipoDocumento === 'DNI' ? 8 : (formData.tipoDocumento === 'CE' ? 9 : 0)}
+                  pattern={formData.tipoDocumento === 'PASAPORTE' ? "[a-zA-Z0-9]+" : "[0-9]+"}
+                  title={formData.tipoDocumento === 'PASAPORTE' ? "Solo letras y números permitidos" : "Solo debe contener números"}
                   className="w-full border border-border rounded-md px-3 py-2 bg-background"
                   placeholder="Número de documento"
                 />
