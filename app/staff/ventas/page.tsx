@@ -16,16 +16,27 @@ export default function HistorialVentasStaffPage() {
 
   useEffect(() => {
     const currentRole = localStorage.getItem('rol');
-    setRole(currentRole);
+    const currentModule = localStorage.getItem('staff_module');
+    
+    const isActuallyPortero = currentRole === 'PORTERO' || currentModule === 'PORTERO';
+    setRole(isActuallyPortero ? 'PORTERO' : currentRole);
 
     const fetchHistory = async () => {
       try {
-        if (currentRole === 'PORTERO') {
+        if (isActuallyPortero) {
           const res = await api.get('/users/me/validations');
           setItems(res.data);
         } else {
           const res = await api.get('/users/me/sales');
-          setItems(res.data);
+          let sales = res.data;
+          
+          if (currentModule === 'TAQUILLA') {
+            sales = sales.filter((item: any) => item.peliculaTitulo !== 'Compra en Dulcería');
+          } else if (currentModule === 'DULCERIA') {
+            sales = sales.filter((item: any) => item.peliculaTitulo === 'Compra en Dulcería');
+          }
+          
+          setItems(sales);
         }
       } catch (error) {
         console.error('Error fetching history', error);

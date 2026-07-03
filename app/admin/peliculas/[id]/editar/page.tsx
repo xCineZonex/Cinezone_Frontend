@@ -18,6 +18,7 @@ export default function EditarPeliculaPage() {
   const params = useParams();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [originalEstado, setOriginalEstado] = useState<string>('');
   
   const [formData, setFormData] = useState({
     titulo: '',
@@ -38,6 +39,7 @@ export default function EditarPeliculaPage() {
     languages: [] as string[],
     movieStatuses: [] as string[]
   });
+  const [initialEstado, setInitialEstado] = useState('EN_CARTELERA');
 
   const currentYear = new Date().getFullYear();
   const minDate = `${currentYear}-01-01`;
@@ -66,6 +68,7 @@ export default function EditarPeliculaPage() {
       
       const movie = movieRes.data.find((m: any) => m.id === parseInt(params.id as string));
       if (movie) {
+        setOriginalEstado(movie.estado || 'EN_CARTELERA');
         setFormData({
           titulo: movie.titulo || '',
           sinopsis: movie.sinopsis || '',
@@ -80,6 +83,7 @@ export default function EditarPeliculaPage() {
           fechaEstreno: movie.fechaEstreno ? movie.fechaEstreno.split('T')[0] : '',
           fechaFinCartelera: movie.fechaFinCartelera ? movie.fechaFinCartelera.split('T')[0] : ''
         });
+        setInitialEstado(movie.estado || 'EN_CARTELERA');
       } else {
         toast.error('Película no encontrada');
         router.push('/admin/peliculas');
@@ -364,6 +368,9 @@ export default function EditarPeliculaPage() {
               >
                 {enums.movieStatuses.length > 0 ? (
                   enums.movieStatuses.map((status) => {
+                    if (initialEstado === 'EN_CARTELERA' && status !== 'EN_CARTELERA' && status !== 'RETIRADA') {
+                      return null;
+                    }
                     const isPastRelease = formData.fechaEstreno ? new Date(formData.fechaEstreno + 'T00:00:00') < new Date(new Date().setHours(0,0,0,0)) : false;
                     return (
                       <option key={status} value={status} disabled={status === 'PROXIMAMENTE' && isPastRelease}>
@@ -373,10 +380,19 @@ export default function EditarPeliculaPage() {
                   })
                 ) : (
                   <>
-                    <option value="EN_CARTELERA">En Cartelera</option>
-                    <option value="PROXIMAMENTE" disabled={formData.fechaEstreno ? new Date(formData.fechaEstreno + 'T00:00:00') < new Date(new Date().setHours(0,0,0,0)) : false}>Próximamente</option>
-                    <option value="PRE_VENTA">Pre-venta</option>
-                    <option value="RETIRADA">Retirada</option>
+                    {initialEstado === 'EN_CARTELERA' ? (
+                      <>
+                        <option value="EN_CARTELERA">En Cartelera</option>
+                        <option value="RETIRADA">Retirada</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="EN_CARTELERA">En Cartelera</option>
+                        <option value="PROXIMAMENTE" disabled={formData.fechaEstreno ? new Date(formData.fechaEstreno + 'T00:00:00') < new Date(new Date().setHours(0,0,0,0)) : false}>Próximamente</option>
+                        <option value="PRE_VENTA">Pre-venta</option>
+                        <option value="RETIRADA">Retirada</option>
+                      </>
+                    )}
                   </>
                 )}
               </select>
