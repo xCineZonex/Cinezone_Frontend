@@ -396,7 +396,7 @@ export default function PeliculaPage(props: { params: Promise<{ id: string }> })
                               <div className="text-xs px-2 py-1 bg-secondary rounded-md font-semibold">{dia}</div>
                             </div>
                             <div className="text-sm text-muted-foreground font-medium">
-                              Sala: {funcion.auditoriumNombre || funcion.salaNombre || 'N/A'}
+                              Sala: {funcion.auditorium?.nombre || funcion.auditoriumNombre || funcion.salaNombre || 'N/A'}
                             </div>
                             <div className="text-xs text-muted-foreground mt-1">
                               {funcion.formatoProyeccion || funcion.formato} · {funcion.idioma}

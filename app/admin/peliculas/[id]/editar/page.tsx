@@ -371,6 +371,12 @@ export default function EditarPeliculaPage() {
                     if (initialEstado === 'EN_CARTELERA' && status !== 'EN_CARTELERA' && status !== 'RETIRADA') {
                       return null;
                     }
+                    if (initialEstado === 'RETIRADA' && status !== 'RETIRADA') {
+                      return null;
+                    }
+                    if (initialEstado === 'PRE_VENTA' && status === 'PROXIMAMENTE') {
+                      return null;
+                    }
                     const isPastRelease = formData.fechaEstreno ? new Date(formData.fechaEstreno + 'T00:00:00') < new Date(new Date().setHours(0,0,0,0)) : false;
                     return (
                       <option key={status} value={status} disabled={status === 'PROXIMAMENTE' && isPastRelease}>
@@ -380,8 +386,16 @@ export default function EditarPeliculaPage() {
                   })
                 ) : (
                   <>
-                    {initialEstado === 'EN_CARTELERA' ? (
+                    {initialEstado === 'RETIRADA' ? (
+                      <option value="RETIRADA">Retirada</option>
+                    ) : initialEstado === 'EN_CARTELERA' ? (
                       <>
+                        <option value="EN_CARTELERA">En Cartelera</option>
+                        <option value="RETIRADA">Retirada</option>
+                      </>
+                    ) : initialEstado === 'PRE_VENTA' ? (
+                      <>
+                        <option value="PRE_VENTA">Pre-venta</option>
                         <option value="EN_CARTELERA">En Cartelera</option>
                         <option value="RETIRADA">Retirada</option>
                       </>
