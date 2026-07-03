@@ -35,7 +35,11 @@ export default function StaffSelectorPage() {
       const res = await api.get('/taquilla/caja/estado');
       if (res.data.estado === 'ABIERTA') {
         const currentModule = localStorage.getItem('staff_module');
-        if (currentModule && currentModule !== module && currentModule !== 'NONE') {
+        const isSwitchingBetweenSales = 
+          (currentModule === 'TAQUILLA' && module === 'DULCERIA') ||
+          (currentModule === 'DULCERIA' && module === 'TAQUILLA');
+
+        if (isSwitchingBetweenSales) {
           toast.error(`Debes cerrar tu caja en ${currentModule} antes de cambiar a ${module}`);
           return;
         }
