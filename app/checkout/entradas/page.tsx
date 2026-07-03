@@ -373,7 +373,7 @@ export default function CheckoutEntradasPage() {
                       const hasEnoughPoints = b.pointsRequired === 0 || (profile.puntos || 0) >= (currentSelected + 1) * b.pointsRequired;
                       const doesNotExceedSeats = totalSelected + tCount <= seatsCount;
                       
-                      const showFmt = showtime?.formato || '2D';
+                      const showFmt = pelicula?.formato || '2D';
                       const benFmt = b.formato || 'TODOS';
                       const hasValidFormat = benFmt === 'TODOS' || 
                                              benFmt === showFmt || 
