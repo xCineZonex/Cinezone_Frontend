@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Plus, User, Trash2, Edit } from 'lucide-react';
+import { Plus, User, Trash2, Edit, CheckCircle, XCircle } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { useSedeStore } from '@/store/useSedeStore';
@@ -40,15 +40,15 @@ export default function AdminUsuariosPage() {
   };
 
   const deleteUser = async (id: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar este usuario?')) return;
+    if (!confirm('¿Estás seguro de que deseas cambiar el estado de este usuario?')) return;
     
     try {
       await api.delete(`/admin/users/${id}`);
-      toast.success('Usuario eliminado exitosamente');
+      toast.success('Estado del usuario actualizado exitosamente');
       fetchUsuarios();
     } catch (error) {
-      console.error('Error deleting user:', error);
-      toast.error('No se pudo eliminar el usuario');
+      console.error('Error toggling user:', error);
+      toast.error('No se pudo actualizar el estado del usuario');
     }
   };
 
@@ -152,10 +152,14 @@ export default function AdminUsuariosPage() {
                     {user.rol !== 'SUPER_ADMIN' && user.rol !== 'ADMIN' && currentUser?.id !== user.id && (
                       <button 
                         onClick={() => deleteUser(user.id)}
-                        className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors" 
-                        title="Eliminar"
+                        className={`p-2 rounded-lg transition-colors ${
+                          user.activo === false // Assuming backend sends activo (if not, it might not render the red state initially, but action will work)
+                            ? 'text-emerald-500 hover:bg-emerald-500/10'
+                            : 'text-muted-foreground hover:text-destructive hover:bg-destructive/10'
+                        }`}
+                        title={user.activo === false ? "Habilitar" : "Deshabilitar"}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        {user.activo === false ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
                       </button>
                     )}
                   </td>
