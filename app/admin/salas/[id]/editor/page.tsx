@@ -167,7 +167,25 @@ export default function EditSalaEditorPage() {
     }
   };
 
-  const tools: Tool[] = ['ESTANDAR', 'VIP', 'DISCAPACIDAD', 'ERASER', 'MANTENIMIENTO'];
+  const getToolsForSala = (tipo?: string): Tool[] => {
+    const t = tipo?.toUpperCase() || 'FORMAT_2D';
+    const baseTools: Tool[] = ['ESTANDAR', 'DISCAPACIDAD'];
+    const extraTools: Tool[] = ['ERASER', 'MANTENIMIENTO'];
+    if (t === 'VIP') return ['VIP', ...extraTools];
+    if (t === 'IMAX') return [...baseTools, 'VIP', ...extraTools];
+    return [...baseTools, ...extraTools];
+  };
+
+  const tools: Tool[] = getToolsForSala(salaInfo?.tipo);
+
+  useEffect(() => {
+    if (salaInfo) {
+      const validTools = getToolsForSala(salaInfo?.tipo);
+      if (!validTools.includes(activeTool) && activeTool !== 'MANTENIMIENTO' && activeTool !== 'ERASER') {
+        setActiveTool(validTools[0]);
+      }
+    }
+  }, [salaInfo]);
 
   if (loading) {
     return (

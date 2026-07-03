@@ -277,8 +277,22 @@ export default function SeatEditorPage() {
     );
   }
 
-  // ── PASO 2: EDITOR DE LIENZO ───────────────────────────────────────────────
-  const tools: Tool[] = ['ESTANDAR', 'VIP', 'DISCAPACIDAD', 'ERASER'];
+  const getToolsForSala = (tipo: string): Tool[] => {
+    const t = tipo?.toUpperCase() || 'FORMAT_2D';
+    const baseTools: Tool[] = ['ESTANDAR', 'DISCAPACIDAD'];
+    if (t === 'VIP') return ['VIP', 'ERASER'];
+    if (t === 'IMAX') return [...baseTools, 'VIP', 'ERASER'];
+    return [...baseTools, 'ERASER'];
+  };
+
+  const tools: Tool[] = getToolsForSala(form.tipo);
+
+  useEffect(() => {
+    const validTools = getToolsForSala(form.tipo);
+    if (!validTools.includes(activeTool)) {
+      setActiveTool(validTools[0]);
+    }
+  }, [form.tipo]);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden" onMouseUp={handleMouseUp}>

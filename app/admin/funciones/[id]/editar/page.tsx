@@ -113,6 +113,21 @@ export default function EditarFuncionPage() {
         [name]: value,
         idioma: selectedMov?.idioma || 'ESPANOL'
       });
+    } else if (name === 'auditoriumId') {
+      const selectedSala = salas.find(s => s.id.toString() === value);
+      let newFormato = formData.formatoProyeccion;
+      if (selectedSala) {
+        const tipoSala = selectedSala.tipo?.toUpperCase() || 'FORMAT_2D';
+        if (tipoSala === 'REGULAR' || tipoSala === 'FORMAT_2D') newFormato = 'FORMAT_2D';
+        else if (tipoSala === '3D' || tipoSala === 'FORMAT_3D') newFormato = 'FORMAT_3D';
+        else if (tipoSala === 'IMAX') newFormato = 'IMAX';
+        else if (tipoSala === '4DX' || tipoSala === 'FORMAT_4DX') newFormato = 'FORMAT_4DX';
+      }
+      setFormData({
+        ...formData,
+        [name]: value,
+        formatoProyeccion: newFormato
+      });
     } else {
       setFormData({
         ...formData,
@@ -199,6 +214,9 @@ export default function EditarFuncionPage() {
                       formData.fechaHora === originalData.fechaHora;
 
   const selectedMovie = peliculas.find(p => p.id.toString() === formData.movieId);
+  const selectedSala = salas.find(s => s.id.toString() === formData.auditoriumId);
+  const isFormatoDisabled = selectedSala && selectedSala.tipo?.toUpperCase() !== 'VIP';
+
   const previewFunction = (!isUnchanged && formData.auditoriumId && formData.fechaHora && selectedMovie) ? {
     auditoriumId: formData.auditoriumId,
     fechaHora: formData.fechaHora,
@@ -312,7 +330,8 @@ export default function EditarFuncionPage() {
                 required
                 value={formData.formatoProyeccion}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                disabled={isFormatoDisabled}
+                className={`w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all ${isFormatoDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <option value="FORMAT_2D">2D Estándar</option>
                 <option value="FORMAT_3D">3D Digital</option>
