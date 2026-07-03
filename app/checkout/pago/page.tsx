@@ -218,10 +218,7 @@ export default function CheckoutPagoPage() {
       const res = await api.post('/compras/confirmar', payload);
       const purchaseData = res.data;
 
-      // 3. Simular el pago exitoso (POST /compras/{id}/simular-pago)
-      // En producción esto lo haría el Webhook de Mercado Pago
-      await api.post(`/compras/${purchaseData.boletaId}/simular-pago`);
-      
+
       // 4. Guardar respuesta para la boleta
       setLastPurchaseResponse(purchaseData);
       

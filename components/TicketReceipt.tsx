@@ -35,11 +35,7 @@ export default function TicketReceipt({ data, onClose, onSimulatePayment }: Tick
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
       <div className="absolute top-4 right-4 flex gap-4">
-        {onSimulatePayment && (
-          <button onClick={onSimulatePayment} className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-bold rounded-full shadow-lg transition-colors flex items-center gap-2">
-            ✅ Simular Pago Exitoso
-          </button>
-        )}
+
         <button onClick={onClose} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
           <X className="w-6 h-6 text-white" />
         </button>
