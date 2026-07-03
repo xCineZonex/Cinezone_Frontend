@@ -183,7 +183,7 @@ export default function CheckoutPagoPage() {
       tickets.forEach(t => {
         for (let i = 0; i < t.cantidad; i++) {
           let backendType = t.typeKey || 'NORMAL';
-          if (!['NORMAL', 'TERCERA_EDAD', 'DISCAPACIDAD', 'NINO'].includes(backendType)) {
+          if (!['NORMAL', 'TERCERA_EDAD', 'DISCAPACIDAD', 'NINO', 'BENEFICIO', 'PROMO'].includes(backendType)) {
             backendType = 'NORMAL';
           }
           ticketPool.push({ type: backendType, price: t.precio, benefitId: t.benefitId });
