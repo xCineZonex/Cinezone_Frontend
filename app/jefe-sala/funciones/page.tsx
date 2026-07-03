@@ -44,10 +44,22 @@ export default function JefeSalaFunciones() {
     return () => clearInterval(interval);
   }, [sedeId]);
 
-  const filteredFunciones = funciones.filter(f => 
-    f.pelicula?.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    f.sala?.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredFunciones = funciones.filter(f => {
+    const matchesSearch = f.pelicula?.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          f.sala?.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
+                          
+    const inicio = new Date(f.horario);
+    // Asumimos 120 minutos si no hay duración, igual que abajo
+    const fin = new Date(inicio.getTime() + (f.pelicula?.duracion || 120) * 60000);
+    const ahora = new Date();
+    
+    const diffMinutos = (fin.getTime() - ahora.getTime()) / 60000;
+    
+    // Mostrar si falta 20 minutos o menos para terminar (o si ya terminó hace poco, ej. 60 min)
+    const isEndingSoonOrEnded = diffMinutos <= 20 && diffMinutos >= -60;
+
+    return matchesSearch && isEndingSoonOrEnded;
+  });
 
   return (
     <div className="space-y-8">
