@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 
-export default function CashShiftModal({ onOpenSuccess }: { onOpenSuccess: () => void }) {
+export default function CashShiftModal({ onOpenSuccess, moduleName }: { onOpenSuccess: () => void, moduleName: string }) {
   const router = useRouter();
   const [openingBalance, setOpeningBalance] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ export default function CashShiftModal({ onOpenSuccess }: { onOpenSuccess: () =>
 
     setLoading(true);
     try {
-      await api.post('/taquilla/caja/abrir', { montoApertura: Number(openingBalance) });
+      await api.post('/taquilla/caja/abrir', { montoApertura: Number(openingBalance), module: moduleName });
       toast.success('Caja abierta correctamente');
       onOpenSuccess();
     } catch (err: any) {

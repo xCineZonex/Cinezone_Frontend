@@ -50,7 +50,10 @@ export default function DulceriaStaffPage() {
   return (
     <div className="min-h-screen bg-secondary/10 flex">
       {showOpenModal && (
-        <CashShiftModal onOpenSuccess={() => { setShiftStatus('ABIERTA'); setShowOpenModal(false); }} />
+        <CashShiftModal 
+          moduleName="DULCERIA"
+          onOpenSuccess={() => { setShiftStatus('ABIERTA'); setShowOpenModal(false); }} 
+        />
       )}
         {showCloseModal && (
           <CloseShiftModal 

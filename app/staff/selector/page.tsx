@@ -34,13 +34,11 @@ export default function StaffSelectorPage() {
     try {
       const res = await api.get('/taquilla/caja/estado');
       if (res.data.estado === 'ABIERTA') {
-        const currentModule = localStorage.getItem('staff_module');
-        const isSwitchingBetweenSales = 
-          (currentModule === 'TAQUILLA' && module === 'DULCERIA') ||
-          (currentModule === 'DULCERIA' && module === 'TAQUILLA');
+        const openedModule = res.data.modulo; // 'TAQUILLA' o 'DULCERIA'
 
-        if (isSwitchingBetweenSales) {
-          toast.error(`Debes cerrar tu caja en ${currentModule} antes de cambiar a ${module}`);
+        // Si intentan entrar a un módulo diferente al que tienen abierto, bloquéalos
+        if (openedModule && openedModule !== module) {
+          toast.error(`Tienes una caja abierta en ${openedModule}. Ciérrala antes de entrar a ${module}.`);
           return;
         }
       }
