@@ -44,7 +44,7 @@ export default function ResponderReclamoPage({ params }: { params: Promise<{ id:
         respuestaAdmin: replyText
       });
       toast.success('Respuesta enviada al cliente');
-      fetchComplaint(); // Recargar para ver estado RESPONDIDO
+      router.push('/admin/reclamos'); // Redirigir a la bandeja principal
     } catch (error: any) {
       console.error('Error enviando respuesta:', error);
       toast.error(error.response?.data?.message || 'Error al enviar la respuesta');
