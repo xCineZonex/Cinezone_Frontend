@@ -217,29 +217,48 @@ export default function CheckoutPagoPage() {
       // 2. Crear la reserva (POST /compras/confirmar)
       const res = await api.post('/compras/confirmar', payload);
       const purchaseData = res.data;
-      // 3. Confirmación de pago manual para Efectivo (solo taquilla lo verá/usará en su flujo)
-      if (metodoPago === 'EFECTIVO' || metodoPago === 'POS') {
-        await api.post(`/compras/${purchaseData.boletaId}/simular-pago`);
-      }
 
-      // 4. Guardar respuesta para la boleta
-      setLastPurchaseResponse(purchaseData);
-      
-      // 5. Limpiar carrito manteniendo el recibo (para que BoletaPage lo vea)
-      clearCart(true);
-      
-      // 6. Limpiar cliente de taquilla
-      if (taquillaCliente) {
-        localStorage.removeItem('taquillaClienteId');
-        localStorage.removeItem('taquillaClienteNombre');
-      }
+      const userRol = localStorage.getItem('rol');
+      if (['TAQUILLA', 'DULCERIA', 'ADMIN_SEDE', 'VALIDADOR', 'PORTERO', 'STAFF'].includes(userRol || '')) {
+        // 3. Confirmación de pago manual para Efectivo (solo taquilla lo verá/usará en su flujo)
+        if (metodoPago === 'EFECTIVO' || metodoPago === 'POS') {
+          await api.post(`/compras/${purchaseData.boletaId}/simular-pago`);
+        }
 
-      toast.success('¡Compra realizada con éxito!');
-      
-      // Pequeña espera para asegurar que Zustand persistió el cambio antes de navegar
-      setTimeout(() => {
-        router.push('/checkout/boleta');
-      }, 100);
+        // 4. Guardar respuesta para la boleta
+        setLastPurchaseResponse(purchaseData);
+        
+        // 5. Limpiar carrito manteniendo el recibo (para que BoletaPage lo vea)
+        clearCart(true);
+        
+        // 6. Limpiar cliente de taquilla
+        if (taquillaCliente) {
+          localStorage.removeItem('taquillaClienteId');
+          localStorage.removeItem('taquillaClienteNombre');
+        }
+
+        toast.success('¡Compra realizada con éxito!');
+        
+        // Pequeña espera para asegurar que Zustand persistió el cambio antes de navegar
+        setTimeout(() => {
+          router.push('/checkout/boleta');
+        }, 100);
+      } else {
+        // Generar preferencia de Mercado Pago y redirigir
+        try {
+          const mpRes = await api.post(`/mercadopago/preferencia/${purchaseData.boletaId}`);
+          const initPoint = mpRes.data.initPoint;
+          
+          setLastPurchaseResponse(purchaseData);
+          clearCart(true);
+          
+          // Redirigir a Mercado Pago
+          window.location.href = initPoint;
+        } catch (mpErr) {
+          console.error("Error generando Mercado Pago", mpErr);
+          toast.error("Hubo un error al conectar con Mercado Pago.");
+        }
+      }
       
     } catch (error: any) {
       console.error('Error in payment flow:', error);
