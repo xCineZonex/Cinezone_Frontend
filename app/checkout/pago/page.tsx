@@ -217,7 +217,10 @@ export default function CheckoutPagoPage() {
       // 2. Crear la reserva (POST /compras/confirmar)
       const res = await api.post('/compras/confirmar', payload);
       const purchaseData = res.data;
-
+      // 3. Confirmación de pago manual para Efectivo (solo taquilla lo verá/usará en su flujo)
+      if (metodoPago === 'EFECTIVO' || metodoPago === 'POS') {
+        await api.post(`/compras/${purchaseData.boletaId}/simular-pago`);
+      }
 
       // 4. Guardar respuesta para la boleta
       setLastPurchaseResponse(purchaseData);
