@@ -122,6 +122,11 @@ export default function SeatMap({ funcionId }: SeatMapProps) {
       return;
     }
 
+    if (useCartStore.getState().asientos.length >= 10) {
+      toast.error('No puedes seleccionar más de 10 asientos por transacción.');
+      return;
+    }
+
     try {
       await api.post('/reservas/asientos/lock', {
         funcionId,
