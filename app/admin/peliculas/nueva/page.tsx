@@ -207,83 +207,93 @@ export default function NuevaPeliculaPage() {
               )}
             </div>
 
-            <div className="space-y-2 flex flex-col">
-              <label className="text-sm font-semibold">Fecha de Estreno *</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal px-4 py-3 h-auto bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all",
-                      !formData.fechaEstreno && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-5 w-5" />
-                    {formData.fechaEstreno ? format(parseISO(formData.fechaEstreno), "dd/MM/yyyy", { locale: es }) : <span>Selecciona una fecha</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.fechaEstreno ? parseISO(formData.fechaEstreno) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        setFormData({ ...formData, fechaEstreno: format(date, "yyyy-MM-dd") });
-                      }
-                    }}
-                    disabled={(date) => {
-                      const today = new Date();
-                      today.setHours(0,0,0,0);
-                      const min = parseISO(minDate);
-                      const max = parseISO(maxDate);
-                      return date < min || date > max;
-                    }}
-                    initialFocus
-                    locale={es}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+            <div className="md:col-span-2 mt-4">
+              <div className="p-5 border border-primary/20 bg-primary/5 rounded-2xl space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <CalendarIcon className="w-5 h-5 text-primary" />
+                  <h3 className="font-bold text-lg text-primary">Ciclo de Vida Comercial</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2 flex flex-col">
+                    <label className="text-sm font-semibold">Fecha de Estreno *</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal px-4 py-3 h-auto bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all",
+                            !formData.fechaEstreno && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-5 w-5" />
+                          {formData.fechaEstreno ? format(parseISO(formData.fechaEstreno), "dd/MM/yyyy", { locale: es }) : <span>Selecciona una fecha</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={formData.fechaEstreno ? parseISO(formData.fechaEstreno) : undefined}
+                          onSelect={(date) => {
+                            if (date) {
+                              setFormData({ ...formData, fechaEstreno: format(date, "yyyy-MM-dd") });
+                            }
+                          }}
+                          disabled={(date) => {
+                            const today = new Date();
+                            today.setHours(0,0,0,0);
+                            const min = parseISO(minDate);
+                            const max = parseISO(maxDate);
+                            return date < min || date > max;
+                          }}
+                          initialFocus
+                          locale={es}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
 
-            <div className="space-y-2 flex flex-col">
-              <label className="text-sm font-semibold">Fecha Fin de Cartelera</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal px-4 py-3 h-auto bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all",
-                      !formData.fechaFinCartelera && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-5 w-5" />
-                    {formData.fechaFinCartelera ? format(parseISO(formData.fechaFinCartelera), "dd/MM/yyyy", { locale: es }) : <span>Opcional</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.fechaFinCartelera ? parseISO(formData.fechaFinCartelera) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        setFormData({ ...formData, fechaFinCartelera: format(date, "yyyy-MM-dd") });
-                      } else {
-                        setFormData({ ...formData, fechaFinCartelera: '' });
-                      }
-                    }}
-                    disabled={(date) => {
-                      const min = parseISO(getNextDay(formData.fechaEstreno));
-                      const max = parseISO(maxDate);
-                      return date < min || date > max;
-                    }}
-                    initialFocus
-                    locale={es}
-                  />
-                </PopoverContent>
-              </Popover>
-              <p className="text-xs text-muted-foreground mt-1">
-                Opcional. Si se deja en blanco, el sistema asignará 3 semanas (21 días) a partir del estreno.
-              </p>
+                  <div className="space-y-2 flex flex-col">
+                    <label className="text-sm font-semibold">Fecha Fin de Cartelera</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal px-4 py-3 h-auto bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all",
+                            !formData.fechaFinCartelera && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-5 w-5" />
+                          {formData.fechaFinCartelera ? format(parseISO(formData.fechaFinCartelera), "dd/MM/yyyy", { locale: es }) : <span>Opcional</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={formData.fechaFinCartelera ? parseISO(formData.fechaFinCartelera) : undefined}
+                          onSelect={(date) => {
+                            if (date) {
+                              setFormData({ ...formData, fechaFinCartelera: format(date, "yyyy-MM-dd") });
+                            } else {
+                              setFormData({ ...formData, fechaFinCartelera: '' });
+                            }
+                          }}
+                          disabled={(date) => {
+                            const min = parseISO(getNextDay(formData.fechaEstreno));
+                            const max = parseISO(maxDate);
+                            return date < min || date > max;
+                          }}
+                          initialFocus
+                          locale={es}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Opcional. Si se deja en blanco, el sistema asignará 3 semanas (21 días) a partir del estreno.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
