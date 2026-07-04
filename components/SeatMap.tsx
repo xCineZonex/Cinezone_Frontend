@@ -278,7 +278,8 @@ export default function SeatMap({ funcionId }: SeatMapProps) {
             let textClass = 'text-muted-foreground';
             
             if (isAvailable) {
-               if (seat.tipo === 'DISCAPACIDAD') bgClass = 'bg-green-500/20 border border-green-500/50 hover:bg-green-500/40';
+               if (seat.tipo === 'DISCAPACIDAD') bgClass = 'bg-green-500/20 border border-green-500/50 hover:bg-green-500/40 text-green-500';
+               else if (seat.tipo === 'VIP') bgClass = 'bg-yellow-500/20 border border-yellow-500/50 hover:bg-yellow-500/40 text-yellow-500';
             }
             if (isMaintenance) bgClass = 'bg-gray-800 text-gray-500 border border-dashed border-gray-600 cursor-not-allowed opacity-60';
             else if (isOccupied) bgClass = 'bg-destructive/60 text-destructive-foreground cursor-not-allowed opacity-50';
@@ -312,14 +313,24 @@ export default function SeatMap({ funcionId }: SeatMapProps) {
       </div>
 
       <div className="mt-8 pt-6 border-t border-border w-full flex flex-wrap justify-center gap-x-8 gap-y-4 text-[13px] font-medium">
-        <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-t bg-secondary" />
-          <span className="text-muted-foreground">Disponible</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-t bg-green-500/20 border border-green-500/50" />
-          <span className="text-muted-foreground">Discapacidad</span>
-        </div>
+        {safeSeats.some(s => !s.tipo || s.tipo === 'ESTANDAR' || s.tipo === 'GENERAL') && (
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded-t bg-secondary" />
+            <span className="text-muted-foreground">Estándar</span>
+          </div>
+        )}
+        {safeSeats.some(s => s.tipo === 'VIP') && (
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded-t bg-yellow-500/20 border border-yellow-500/50" />
+            <span className="text-muted-foreground">VIP</span>
+          </div>
+        )}
+        {safeSeats.some(s => s.tipo === 'DISCAPACIDAD') && (
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded-t bg-green-500/20 border border-green-500/50" />
+            <span className="text-muted-foreground">Discapacidad</span>
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <div className="w-5 h-5 rounded-t bg-destructive/60 opacity-50" />
           <span className="text-muted-foreground">Ocupado</span>

@@ -171,12 +171,15 @@ export default function EditSalaEditorPage() {
     const t = tipo?.toUpperCase() || 'FORMAT_2D';
     const baseTools: Tool[] = ['ESTANDAR', 'DISCAPACIDAD'];
     const extraTools: Tool[] = ['ERASER', 'MANTENIMIENTO'];
+    
+    const hasVipSeats = grid.some(row => row.some(cell => cell.type === 'VIP'));
+
     if (t === 'VIP') return ['VIP', ...extraTools];
-    if (t === 'IMAX') return [...baseTools, 'VIP', ...extraTools];
+    if (t === 'IMAX' || hasVipSeats) return [...baseTools, 'VIP', ...extraTools];
     return [...baseTools, ...extraTools];
   };
 
-  const tools: Tool[] = getToolsForSala(salaInfo?.tipo);
+  const tools: Tool[] = getToolsForSala(salaInfo?.tipo || salaInfo?.formato);
 
   useEffect(() => {
     if (salaInfo) {

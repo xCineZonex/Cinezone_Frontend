@@ -35,6 +35,7 @@ interface CartState {
     sedeNombre: string | null;
     salaNombre: string | null;
     fechaHora: string | null;
+    sedeId?: number;
   };
   asientos: Asiento[];
   tickets: TicketSelection[];
@@ -73,6 +74,7 @@ export const useCartStore = create<CartState>()(
         sedeNombre: null,
         salaNombre: null,
         fechaHora: null,
+        sedeId: undefined,
       },
       asientos: [],
       tickets: [],
@@ -154,6 +156,7 @@ export const useCartStore = create<CartState>()(
             sedeNombre: null,
             salaNombre: null,
             fechaHora: null,
+            sedeId: undefined,
           },
           asientos: [],
           tickets: [],

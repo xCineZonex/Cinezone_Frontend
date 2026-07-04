@@ -92,7 +92,7 @@ export default function CheckoutEntradasPage() {
       const [ticketsRes, profileRes, benefitsRes] = await Promise.allSettled([
         api.get(`/public/funciones/${funcionId}/tipos-entrada`),
         api.get('/users/me'),
-        api.get('/public/beneficios')
+        api.get('/public/beneficios', { params: { sedeId: pelicula?.sedeId } })
       ]);
 
       if (ticketsRes.status === 'fulfilled') {
