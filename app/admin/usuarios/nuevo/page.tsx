@@ -65,8 +65,8 @@ export default function NuevoStaffPage() {
         toast.error('Un Administrador de Sede solo puede asignar 1 sede por usuario.');
         return prev;
       }
-      if (!isSelected && formData.rol === 'STAFF' && prev.sedesIds.length >= 1) {
-        toast.error('Un usuario con el rol Staff debe tener asignada únicamente una sede.');
+      if (!isSelected && (formData.rol === 'STAFF' || formData.rol === 'JEFE_SALA') && prev.sedesIds.length >= 1) {
+        toast.error(`Un usuario con el rol ${formData.rol === 'STAFF' ? 'Staff' : 'Jefe de Sala'} debe tener asignada únicamente una sede.`);
         return prev;
       }
       return {
@@ -79,10 +79,19 @@ export default function NuevoStaffPage() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    if (name === 'rol' && (value === 'STAFF' || value === 'JEFE_SALA')) {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        sedesIds: prev.sedesIds.length > 1 ? [prev.sedesIds[0]] : prev.sedesIds
+      }));
+      return;
+    }
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
