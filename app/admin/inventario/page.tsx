@@ -67,9 +67,6 @@ export default function InventarioPage() {
   useEffect(() => {
     setUserRole(localStorage.getItem('rol'));
     fetchProducts();
-    if (localStorage.getItem('rol') === 'ADMIN_SEDE') {
-      fetchSolicitudes();
-    }
   }, []);
 
   useEffect(() => {
@@ -89,20 +86,29 @@ export default function InventarioPage() {
     }
   };
 
-  const fetchSolicitudes = async () => {
+  const fetchSolicitudes = async (sedeIdToFetch?: string) => {
     try {
-      const res = await api.get('/alertas/replacements');
+      const url = sedeIdToFetch && sedeIdToFetch !== 'all' 
+        ? `/alertas/replacements?sedeId=${sedeIdToFetch}` 
+        : '/alertas/replacements';
+      const res = await api.get(url);
       setSolicitudes(res.data);
     } catch (e) {
       console.error(e);
     }
   };
 
+  useEffect(() => {
+    if (userRole === 'ADMIN_SEDE') {
+      fetchSolicitudes(activeSedeId || undefined);
+    }
+  }, [activeSedeId, userRole]);
+
   const handleSolicitud = async (id: number, status: string) => {
     try {
       await api.put(`/alertas/replacements/${id}/status`, { status });
       toast.success(status === 'ATENDIDO' ? 'Solicitud en proceso' : 'Solicitud denegada');
-      fetchSolicitudes();
+      fetchSolicitudes(activeSedeId || undefined);
     } catch (e) {
       toast.error('Error al actualizar solicitud');
     }
