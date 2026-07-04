@@ -23,19 +23,23 @@ export default function CheckoutEntradasPage() {
   const [selectedBenefits, setSelectedBenefits] = useState<{ [key: string]: number }>({});
   
   const [rol, setRol] = useState('');
+  const [isMounted, setIsMounted] = useState(false);
 
   const [timeLeft, setTimeLeft] = useState('05:00');
 
   useEffect(() => {
+    setIsMounted(true);
     setRol(localStorage.getItem('rol') || '');
-    if (!funcionId || seatsCount === 0) {
-      toast.error('No has seleccionado asientos válidos.');
-      router.push('/');
-      return;
+    if (isMounted) {
+      if (!funcionId || seatsCount === 0) {
+        toast.error('No has seleccionado asientos válidos.');
+        router.push('/');
+        return;
+      }
+      generateIdempotencyKey(); // Generar llave única de idempotencia para la transacción
+      fetchData();
     }
-    generateIdempotencyKey(); // Generar llave única de idempotencia para la transacción
-    fetchData();
-  }, [funcionId]);
+  }, [funcionId, seatsCount, router, isMounted, generateIdempotencyKey]);
 
   useEffect(() => {
     if (!bookingExpiresAt) return;

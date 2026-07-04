@@ -41,8 +41,10 @@ export default function CheckoutPagoPage() {
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [newClient, setNewClient] = useState({ nombre: '', apellido: '' });
   const [efectivoRecibido, setEfectivoRecibido] = useState('');
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     const currentRol = localStorage.getItem('rol') || '';
     setRol(currentRol);
     if (['TAQUILLA', 'DULCERIA', 'ADMIN_SEDE', 'STAFF'].includes(currentRol)) {
@@ -100,6 +102,7 @@ export default function CheckoutPagoPage() {
 
   // Redirigir si el carrito está vacío o el flujo está incompleto
   useEffect(() => {
+    if (!isMounted) return;
     const isTaquilla = ['TAQUILLA', 'DULCERIA', 'ADMIN_SEDE', 'STAFF'].includes(localStorage.getItem('rol') || '');
     const isDulceriaOnly = !funcionId && snacks.length > 0;
 
