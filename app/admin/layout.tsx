@@ -9,6 +9,7 @@ import api from '@/lib/api';
 import { useSedeStore } from '@/store/useSedeStore';
 import { toast } from 'sonner';
 import { useCartStore } from '@/store/useCartStore';
+import CloseShiftModal from '@/components/taquilla/CloseShiftModal';
 
 const sidebarLinks = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
@@ -32,6 +33,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [alertas, setAlertas] = useState<any[]>([]);
   const [showAlerts, setShowAlerts] = useState(false);
+  const [showCloseModal, setShowCloseModal] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   
   const { activeSedeId, setActiveSedeId, assignedSedes, setAssignedSedes } = useSedeStore();
@@ -128,7 +130,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     try {
       const res = await api.get('/taquilla/caja/estado');
       if (res.data.estado === 'ABIERTA') {
-        toast.error('Debes cerrar caja antes de cerrar sesión');
+        toast.info('Redirigiendo a Cierre de Caja...');
+        setShowCloseModal(true);
         return;
       }
     } catch (err) {
@@ -323,6 +326,16 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <main className="flex-1 overflow-y-auto">
         {children}
       </main>
+
+      {showCloseModal && (
+        <CloseShiftModal
+          onClose={() => setShowCloseModal(false)}
+          onSuccess={() => {
+            setShowCloseModal(false);
+            handleLogout();
+          }}
+        />
+      )}
     </div>
   );
 }

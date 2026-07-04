@@ -19,6 +19,7 @@ export default function EditarPeliculaPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [originalEstado, setOriginalEstado] = useState<string>('');
+  const [hasFunciones, setHasFunciones] = useState(false);
   
   const [formData, setFormData] = useState({
     titulo: '',
@@ -60,13 +61,18 @@ export default function EditarPeliculaPage() {
 
   const fetchData = async () => {
     try {
-      const [movieRes, enumsRes] = await Promise.all([
+      const [movieRes, enumsRes, funcionesRes] = await Promise.all([
         api.get('/admin/catalogo/peliculas'),
-        api.get('/admin/catalogo/enums')
+        api.get('/admin/catalogo/enums'),
+        api.get('/admin/catalogo/funciones')
       ]);
       setEnums(enumsRes.data);
       
-      const movie = movieRes.data.find((m: any) => m.id === parseInt(params.id as string));
+      const movieId = parseInt(params.id as string);
+      const hasFunc = funcionesRes.data.some((f: any) => f.movie?.id === movieId);
+      setHasFunciones(hasFunc);
+
+      const movie = movieRes.data.find((m: any) => m.id === movieId);
       if (movie) {
         setOriginalEstado(movie.estado || 'EN_CARTELERA');
         setFormData({
@@ -175,10 +181,16 @@ export default function EditarPeliculaPage() {
                 type="text"
                 name="titulo"
                 required
+                disabled={hasFunciones}
                 value={formData.titulo}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                className={`w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all ${hasFunciones ? 'opacity-50 cursor-not-allowed' : ''}`}
               />
+              {hasFunciones && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  El título no puede modificarse porque la película ya tiene funciones programadas.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2 md:col-span-2">

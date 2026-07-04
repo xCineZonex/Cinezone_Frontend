@@ -93,11 +93,11 @@ export default function UserProfilePage() {
       toast.error('El Pasaporte debe tener al menos 6 caracteres');
       return;
     }
-    if (formData.tipoDocumento === 'CE' && formData.dni.length < 6) {
-      toast.error('El Carnet de Extranjería debe tener al menos 6 caracteres');
+    if (formData.tipoDocumento === 'CE' && !/^\d{9}$/.test(formData.dni)) {
+      toast.error('El Carnet de Extranjería debe tener exactamente 9 dígitos');
       return;
     }
-    if (formData.tipoDocumento === 'DNI' && formData.dni.length !== 8) {
+    if (formData.tipoDocumento === 'DNI' && !/^\d{8}$/.test(formData.dni)) {
       toast.error('El DNI debe tener exactamente 8 caracteres');
       return;
     }
@@ -134,8 +134,8 @@ export default function UserProfilePage() {
       toast.error('Las contraseñas nuevas no coinciden');
       return;
     }
-    if (passForm.newPassword.length < 6) {
-      toast.error('La nueva contraseña debe tener al menos 6 caracteres');
+    if (passForm.newPassword.length < 8) {
+      toast.error('La nueva contraseña debe tener al menos 8 caracteres');
       return;
     }
     setPassLoading(true);
@@ -396,12 +396,12 @@ export default function UserProfilePage() {
                           type="text" 
                           value={formData.dni} 
                           onChange={(e) => {
-                            const val = (formData.tipoDocumento === 'PASAPORTE' || formData.tipoDocumento === 'CE') 
+                            const val = (formData.tipoDocumento === 'PASAPORTE') 
                               ? e.target.value.replace(/[^a-zA-Z0-9]/g, '') 
                               : e.target.value.replace(/[^0-9]/g, '');
                             setFormData({...formData, dni: val})
                           }} 
-                          maxLength={(formData.tipoDocumento === 'PASAPORTE' || formData.tipoDocumento === 'CE') ? 15 : 8}
+                          maxLength={formData.tipoDocumento === 'DNI' ? 8 : (formData.tipoDocumento === 'CE' ? 9 : 15)}
                           className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary" 
                         />
                       </div>

@@ -59,6 +59,12 @@ export default function LoginPage() {
         
         // Redirigir según el rol
         setTimeout(() => {
+          const params = new URLSearchParams(window.location.search);
+          const redirect = params.get('redirect');
+          if (redirect) {
+            window.location.href = redirect;
+            return;
+          }
           if (rol === 'SUPER_ADMIN' || rol === 'ADMIN_SEDE') {
             window.location.href = '/admin/dashboard';
           } else if (rol === 'JEFE_SALA') {
@@ -96,8 +102,14 @@ export default function LoginPage() {
           return;
         }
 
-        if (formData.tipoDocumento === 'CE' && (formData.dni.length < 6 || formData.dni.length > 15)) {
-          setErrorMsg('El Carnet de Extranjería debe tener entre 6 y 15 caracteres.');
+        if (formData.tipoDocumento === 'CE' && !/^\d{9}$/.test(formData.dni)) {
+          setErrorMsg('El Carnet de Extranjería debe tener exactamente 9 dígitos.');
+          setLoading(false);
+          return;
+        }
+
+        if (formData.password.length < 8) {
+          setErrorMsg('La contraseña debe tener al menos 8 caracteres.');
           setLoading(false);
           return;
         }
@@ -243,11 +255,17 @@ export default function LoginPage() {
                         <input
                           type="text"
                           required
-                          maxLength={formData.tipoDocumento === 'DNI' ? 8 : 15}
+                          maxLength={formData.tipoDocumento === 'DNI' ? 8 : (formData.tipoDocumento === 'CE' ? 9 : 15)}
                           value={formData.dni}
-                          onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                          onChange={(e) => {
+                            let val = e.target.value;
+                            if (formData.tipoDocumento === 'DNI' || formData.tipoDocumento === 'CE') {
+                              val = val.replace(/\D/g, ''); // Solo números
+                            }
+                            setFormData({ ...formData, dni: val });
+                          }}
                           className="w-full pl-12 pr-4 py-3 bg-secondary rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-                          placeholder={formData.tipoDocumento === 'DNI' ? "8 dígitos" : "6 a 15 caracteres"}
+                          placeholder={formData.tipoDocumento === 'DNI' ? "8 dígitos" : (formData.tipoDocumento === 'PASAPORTE' ? "6 a 15 caracteres" : "9 dígitos")}
                         />
                       </div>
                     </div>

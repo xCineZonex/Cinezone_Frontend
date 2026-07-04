@@ -358,12 +358,23 @@ export default function Navbar() {
                                 </button>
                               </div>
                             ) : (
-                              <Link href="/checkout/pago" onClick={() => setIsCartOpen(false)}>
-                                <button className="w-full py-4 bg-primary text-primary-foreground font-black rounded-xl hover:bg-primary/90 transition-all shadow-md flex justify-between items-center px-5">
+                              (user || userRole) ? (
+                                <Link href="/checkout/pago" onClick={() => setIsCartOpen(false)}>
+                                  <button className="w-full py-4 bg-primary text-primary-foreground font-black rounded-xl hover:bg-primary/90 transition-all shadow-md flex justify-between items-center px-5">
+                                    <span>Ir a Pagar</span>
+                                    <span className="bg-background/20 px-2 py-1 rounded-lg">S/ {getGranTotal().toFixed(2)}</span>
+                                  </button>
+                                </Link>
+                              ) : (
+                                <button onClick={() => {
+                                  toast.error('Debes iniciar sesión para continuar con el pago');
+                                  setIsCartOpen(false);
+                                  router.push('/login?redirect=/checkout/pago');
+                                }} className="w-full py-4 bg-primary text-primary-foreground font-black rounded-xl hover:bg-primary/90 transition-all shadow-md flex justify-between items-center px-5">
                                   <span>Ir a Pagar</span>
                                   <span className="bg-background/20 px-2 py-1 rounded-lg">S/ {getGranTotal().toFixed(2)}</span>
                                 </button>
-                              </Link>
+                              )
                             );
                           })()}
                         </div>

@@ -80,6 +80,10 @@ export default function EditarUsuarioPage() {
         toast.error('Un Administrador de Sede solo puede asignar 1 sede por usuario.');
         return prev;
       }
+      if (!isSelected && formData.rol === 'STAFF' && prev.sedesIds.length >= 1) {
+        toast.error('Un usuario con el rol Staff debe tener asignada únicamente una sede.');
+        return prev;
+      }
       return {
         ...prev,
         sedesIds: isSelected 
@@ -108,8 +112,8 @@ export default function EditarUsuarioPage() {
       toast.error('El Pasaporte debe tener al menos 6 caracteres');
       return;
     }
-    if (formData.tipoDocumento === 'CE' && formData.dni.length < 6) {
-      toast.error('El Carnet de Extranjería debe tener al menos 6 caracteres');
+    if (formData.tipoDocumento === 'CE' && !/^\d{9}$/.test(formData.dni)) {
+      toast.error('El Carnet de Extranjería debe tener exactamente 9 dígitos');
       return;
     }
     if (!/^\d{9}$/.test(formData.celular)) {
@@ -128,8 +132,8 @@ export default function EditarUsuarioPage() {
       
       // Si el admin escribió una nueva contraseña, la actualizamos también
       if (newPassword.trim().length > 0) {
-        if (newPassword.length < 6) {
-          toast.error('La nueva contraseña debe tener al menos 6 caracteres');
+        if (newPassword.length < 8) {
+          toast.error('La nueva contraseña debe tener al menos 8 caracteres');
           setLoading(false);
           return;
         }
@@ -148,8 +152,8 @@ export default function EditarUsuarioPage() {
   };
 
   const handlePasswordChange = async () => {
-    if (newPassword.length < 6) {
-      toast.error('La contraseña debe tener al menos 6 caracteres');
+    if (newPassword.length < 8) {
+      toast.error('La contraseña debe tener al menos 8 caracteres');
       return;
     }
     setChangingPassword(true);
@@ -281,13 +285,13 @@ export default function EditarUsuarioPage() {
                       type="text"
                       name="dni"
                       required
-                      maxLength={formData.tipoDocumento === 'DNI' ? 8 : 15}
+                      maxLength={formData.tipoDocumento === 'DNI' ? 8 : (formData.tipoDocumento === 'CE' ? 9 : 15)}
                       value={formData.dni}
                       onChange={(e) => {
-                        if (formData.tipoDocumento === 'DNI') {
+                        if (formData.tipoDocumento === 'DNI' || formData.tipoDocumento === 'CE') {
                           const val = e.target.value.replace(/\D/g, '');
                           setFormData({...formData, dni: val});
-                        } else if (formData.tipoDocumento === 'CE' || formData.tipoDocumento === 'PASAPORTE') {
+                        } else if (formData.tipoDocumento === 'PASAPORTE') {
                           const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
                           setFormData({...formData, dni: val});
                         } else {
@@ -295,7 +299,7 @@ export default function EditarUsuarioPage() {
                         }
                       }}
                       className="w-full pl-12 pr-4 py-3.5 bg-secondary/30 border border-border rounded-2xl focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-mono text-lg tracking-wider"
-                      placeholder={formData.tipoDocumento === 'DNI' ? "70001234" : "Número"}
+                      placeholder={formData.tipoDocumento === 'DNI' ? "8 dígitos" : (formData.tipoDocumento === 'CE' ? "9 dígitos" : "Número")}
                     />
                   </div>
                 </div>
@@ -395,7 +399,7 @@ export default function EditarUsuarioPage() {
                     <button
                       type="button"
                       onClick={handlePasswordChange}
-                      disabled={changingPassword || newPassword.length < 6}
+                      disabled={changingPassword || newPassword.length < 8}
                       className="w-full px-4 py-3 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-xl transition-colors disabled:opacity-50"
                     >
                       {changingPassword ? 'Cambiando...' : 'Cambiar Contraseña Inmediatamente'}

@@ -6,12 +6,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import CloseShiftModal from '@/components/taquilla/CloseShiftModal';
+import { toast } from 'sonner';
 
 import { useCartStore } from '@/store/useCartStore';
 
 export default function HeaderStaff() {
   const router = useRouter();
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [showCloseModal, setShowCloseModal] = useState(false);
 
   const [profileHref, setProfileHref] = useState('/staff/selector');
 
@@ -39,6 +42,15 @@ export default function HeaderStaff() {
   }, []);
 
   const handleLogout = async () => {
+    try {
+      const res = await api.get('/taquilla/caja/estado');
+      if (res.data && res.data.estado === 'ABIERTA') {
+        toast.info('Redirigiendo a Cierre de Caja...');
+        setShowCloseModal(true);
+        return;
+      }
+    } catch (e) {}
+
     try {
       await api.post('/users/me/module?module=NONE');
     } catch (e) {}
@@ -87,6 +99,16 @@ export default function HeaderStaff() {
           </motion.button>
         </div>
       </div>
+      
+      {showCloseModal && (
+        <CloseShiftModal
+          onClose={() => setShowCloseModal(false)}
+          onSuccess={() => {
+            setShowCloseModal(false);
+            handleLogout();
+          }}
+        />
+      )}
     </div>
   );
 }
