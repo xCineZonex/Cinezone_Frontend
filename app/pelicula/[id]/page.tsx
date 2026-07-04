@@ -4,7 +4,7 @@ import { useState, useEffect, use } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Clock, Calendar, MapPin, Film, PlayCircle, Star, Info } from 'lucide-react';
+import { Clock, Calendar, MapPin, Film, PlayCircle, Star, Info, ArrowLeft } from 'lucide-react';
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
 import api from '@/lib/api';
@@ -165,8 +165,18 @@ export default function PeliculaPage(props: { params: Promise<{ id: string }> })
     <main className="min-h-screen bg-background pb-20">
       <Navbar />
 
+      {/* Botón de Regresar */}
+      <div className="container mx-auto px-6 pt-24 pb-4 md:pt-28 md:pb-0 z-20 relative">
+        <button 
+          onClick={() => router.back()} 
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground font-semibold transition-colors bg-secondary/80 hover:bg-secondary px-4 py-2 rounded-xl backdrop-blur-md w-fit"
+        >
+          <ArrowLeft className="w-5 h-5" /> Regresar
+        </button>
+      </div>
+
       {/* Hero Section of Movie */}
-      <div className="relative pt-24 md:pt-32 pb-12 overflow-hidden">
+      <div className="relative pt-4 md:pt-8 pb-12 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <Image 
             src={movie.posterUrl} 

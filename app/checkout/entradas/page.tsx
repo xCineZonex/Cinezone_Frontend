@@ -121,7 +121,7 @@ export default function CheckoutEntradasPage() {
         
         const validBenefits = benefitsRes.value.data.filter((b: any) => {
            const requiredScore = levelMap[b.tierName?.toUpperCase()] || 0;
-           return userLevelScore >= requiredScore;
+           return userLevelScore === requiredScore;
         });
         setDynamicBenefits(validBenefits);
       }

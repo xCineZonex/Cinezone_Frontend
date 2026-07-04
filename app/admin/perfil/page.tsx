@@ -24,6 +24,11 @@ export default function MiPerfilPage() {
       toast.error('Las nuevas contraseñas no coinciden');
       return;
     }
+
+    if (formData.newPassword === formData.currentPassword) {
+      toast.error('La nueva contraseña no puede ser igual a la actual');
+      return;
+    }
     
     if (formData.newPassword.length < 6) {
       toast.error('La nueva contraseña debe tener al menos 6 caracteres');

@@ -104,7 +104,7 @@ export default function CheckoutPagoPage() {
     const isDulceriaOnly = !funcionId && snacks.length > 0;
 
     if (!funcionId && asientos.length === 0) {
-      if (isTaquilla && isDulceriaOnly) {
+      if (isDulceriaOnly) {
         // Permitir continuar (solo dulcería)
       } else {
         toast.error('Carrito vacío o sesión expirada.');

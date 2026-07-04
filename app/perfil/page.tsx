@@ -134,6 +134,10 @@ export default function UserProfilePage() {
       toast.error('Las contraseñas nuevas no coinciden');
       return;
     }
+    if (passForm.newPassword === passForm.currentPassword) {
+      toast.error('La nueva contraseña no puede ser igual a la actual');
+      return;
+    }
     if (passForm.newPassword.length < 8) {
       toast.error('La nueva contraseña debe tener al menos 8 caracteres');
       return;

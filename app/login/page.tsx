@@ -124,10 +124,9 @@ export default function LoginPage() {
           genero: formData.genero
         });
 
-        setSuccessMsg('¡Registro exitoso! Ahora puedes iniciar sesión.');
+        setSuccessMsg('¡Registro exitoso! Redirigiendo a verificación...');
         setTimeout(() => {
-          setIsLogin(true);
-          setSuccessMsg('');
+          window.location.href = '/verificar?email=' + encodeURIComponent(formData.email);
         }, 2000);
       }
     } catch (error: any) {
