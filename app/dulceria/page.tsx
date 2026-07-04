@@ -40,7 +40,9 @@ export default function DulceriaPage() {
   const { addSnack, snacks, funcionId, getGranTotal } = useCartStore();
 
   useEffect(() => {
-    setIsTaquilla(['TAQUILLA', 'DULCERIA', 'ADMIN_SEDE', 'VALIDADOR', 'PORTERO', 'STAFF'].includes(localStorage.getItem('rol') || ''));
+    const currentRol = localStorage.getItem('rol') || '';
+    const isStaffRole = ['TAQUILLA', 'DULCERIA', 'ADMIN_SEDE', 'VALIDADOR', 'PORTERO', 'STAFF'].includes(currentRol);
+    setIsTaquilla(isStaffRole);
     
     // Fetch sedes
     const fetchSedes = async () => {
@@ -48,26 +50,27 @@ export default function DulceriaPage() {
         const response = await api.get('/public/sedes');
         setSedes(response.data);
         
-        // Check if sede is already selected in localStorage
-        const storedSede = localStorage.getItem('selectedSede');
-        if (storedSede) {
-          setSelectedSede(Number(storedSede));
-        } else {
-          const rol = localStorage.getItem('rol');
-          if (['TAQUILLA', 'DULCERIA', 'ADMIN_SEDE', 'VALIDADOR', 'PORTERO', 'STAFF'].includes(rol || '')) {
-            try {
-              const userRes = await api.get('/users/me');
-              if (userRes.data.sedesIds && userRes.data.sedesIds.length > 0) {
-                const sId = userRes.data.sedesIds[0];
-                setSelectedSede(sId);
-                localStorage.setItem('selectedSede', sId.toString());
-                return;
-              }
-            } catch (e) {
-              console.error('Error fetching user profile for sede', e);
+        if (isStaffRole) {
+          try {
+            const userRes = await api.get('/users/me');
+            if (userRes.data.sedesIds && userRes.data.sedesIds.length > 0) {
+              const sId = userRes.data.sedesIds[0];
+              setSelectedSede(sId);
+              localStorage.setItem('selectedSede', sId.toString());
+            } else {
+              setShowSedeModal(true);
             }
+          } catch (e) {
+            console.error('Error fetching user profile for sede', e);
+            setShowSedeModal(true);
           }
-          setShowSedeModal(true);
+        } else {
+          const storedSede = localStorage.getItem('selectedSede');
+          if (storedSede) {
+            setSelectedSede(Number(storedSede));
+          } else {
+            setShowSedeModal(true);
+          }
         }
       } catch (error) {
         console.error('Error fetching sedes:', error);
@@ -190,8 +193,13 @@ export default function DulceriaPage() {
                 Dulcería Cinezone
               </div>
               <button 
-                onClick={() => setShowSedeModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-1.5 bg-secondary/80 hover:bg-secondary text-foreground text-sm font-semibold rounded-full border border-border transition-colors shadow-sm"
+                onClick={() => {
+                  if (!isTaquilla) {
+                    setShowSedeModal(true);
+                  }
+                }}
+                disabled={isTaquilla}
+                className={`inline-flex items-center gap-2 px-4 py-1.5 ${isTaquilla ? 'bg-secondary/50 cursor-default opacity-80' : 'bg-secondary/80 hover:bg-secondary cursor-pointer'} text-foreground text-sm font-semibold rounded-full border border-border transition-colors shadow-sm`}
               >
                 📍 Sede: {selectedSede ? sedes.find(s => s.id === selectedSede)?.nombre || 'Seleccionada' : 'Seleccionar'}
               </button>
