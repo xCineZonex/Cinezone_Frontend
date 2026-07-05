@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Package, Plus, Search, ArrowDownCircle, ArrowUpCircle, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/api';
+import useSWR from 'swr';
 
 interface Product {
   id: number;
@@ -74,15 +75,27 @@ export default function InventarioPage() {
     fetchProducts();
   }, []);
 
+  const fetchSedeStocksFetcher = async (url: string) => {
+    const res = await api.get(url);
+    return res.data;
+  };
+
+  const { data: swrSedeStocks } = useSWR(
+    activeSedeId && activeSedeId !== 'all' ? `/admin/inventory/stock/sede/${activeSedeId}` : null,
+    fetchSedeStocksFetcher,
+    { refreshInterval: 5000, revalidateOnFocus: true }
+  );
+
   useEffect(() => {
-    if (activeSedeId && activeSedeId !== 'all') {
-      fetchSedeStocks(Number(activeSedeId));
-    } else {
+    if (swrSedeStocks) {
+      setSedeStocks(swrSedeStocks);
+    } else if (!activeSedeId || activeSedeId === 'all') {
       setSedeStocks([]);
     }
-  }, [activeSedeId]);
+  }, [swrSedeStocks, activeSedeId]);
 
   const fetchSedeStocks = async (sedeId: number) => {
+    // Kept for backward compatibility with manual refreshes if any exist
     try {
       const res = await api.get(`/admin/inventory/stock/sede/${sedeId}`);
       setSedeStocks(res.data);

@@ -10,6 +10,7 @@ import { Plus, Minus, ShoppingCart, Popcorn, ArrowRight, ChevronLeft } from 'luc
 import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import useSWR from 'swr';
 
 interface Sede {
   id: number;
@@ -81,43 +82,45 @@ export default function DulceriaPage() {
     fetchSedes();
   }, []);
 
-  useEffect(() => {
-    const fetchProductos = async () => {
-      if (!selectedSede && showSedeModal) {
-        setLoading(false);
-        return;
-      }
-      setLoading(true);
-      try {
-        const categoryMap: Record<string, string> = {
-          'Combos': 'COMBO',
-          'Popcorn': 'POP_CORN',
-          'Bebidas': 'BEBIDA',
-          'Snacks': 'SNACK',
-        };
-        const mappedCat = categoryMap[categoriaActiva];
-        const url = mappedCat 
-          ? `/public/productos?categoria=${mappedCat}${selectedSede ? `&sedeId=${selectedSede}` : ''}` 
-          : `/public/productos${selectedSede ? `?sedeId=${selectedSede}` : ''}`;
-        
-        const response = await api.get(url);
-        let prods = response.data;
-        // Filtro estricto para STAFF: NO mostrar combos de socios
-        if (['TAQUILLA', 'DULCERIA', 'ADMIN_SEDE', 'VALIDADOR', 'PORTERO', 'STAFF'].includes(localStorage.getItem('rol') || '')) {
-          prods = prods.filter((p: any) => {
-            const n = p.nombre.toLowerCase();
-            return !n.includes('socio') && !n.includes('azul') && !n.includes('dorado') && !n.includes('negro');
-          });
-        }
-        setProductos(prods);
-      } catch (error) {
-        console.error('Error al obtener productos:', error);
-      } finally {
-        setLoading(false);
-      }
+  const getProductsUrl = () => {
+    if (!selectedSede && showSedeModal) return null;
+    const categoryMap: Record<string, string> = {
+      'Combos': 'COMBO',
+      'Popcorn': 'POP_CORN',
+      'Bebidas': 'BEBIDA',
+      'Snacks': 'SNACK',
     };
-    fetchProductos();
-  }, [categoriaActiva, selectedSede, showSedeModal]);
+    const mappedCat = categoryMap[categoriaActiva];
+    return mappedCat 
+      ? `/public/productos?categoria=${mappedCat}${selectedSede ? `&sedeId=${selectedSede}` : ''}` 
+      : `/public/productos${selectedSede ? `?sedeId=${selectedSede}` : ''}`;
+  };
+
+  const fetcher = async (url: string) => {
+    const response = await api.get(url);
+    let prods = response.data;
+    if (['TAQUILLA', 'DULCERIA', 'ADMIN_SEDE', 'VALIDADOR', 'PORTERO', 'STAFF'].includes(localStorage.getItem('rol') || '')) {
+      prods = prods.filter((p: any) => {
+        const n = p.nombre.toLowerCase();
+        return !n.includes('socio') && !n.includes('azul') && !n.includes('dorado') && !n.includes('negro');
+      });
+    }
+    return prods;
+  };
+
+  const { data: productosData, error, isLoading } = useSWR(getProductsUrl(), fetcher, {
+    refreshInterval: 5000,
+    revalidateOnFocus: true,
+  });
+
+  useEffect(() => {
+    if (productosData) {
+      setProductos(productosData);
+      setLoading(false);
+    } else if (isLoading) {
+      setLoading(true);
+    }
+  }, [productosData, isLoading]);
 
   const handleSelectSede = (sedeId: number) => {
     setSelectedSede(sedeId);
