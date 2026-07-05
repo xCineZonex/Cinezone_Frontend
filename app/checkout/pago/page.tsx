@@ -202,6 +202,7 @@ export default function CheckoutPagoPage() {
 
       const payload: any = {
         funcionId: funcionId || null,
+        sedeId: (!funcionId && snacks.length > 0) ? Number(localStorage.getItem('selectedSede')) : pelicula?.sedeId || null,
         asientos: asientosRequest,
         snacks: snacks.map(s => ({ productoId: s.productoId, cantidad: s.cantidad })),
         montoTotalPago: Number(getGranTotal()),

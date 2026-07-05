@@ -9,6 +9,7 @@ import Image from 'next/image';
 import { Plus, Minus, ShoppingCart, Popcorn, ArrowRight, ChevronLeft } from 'lucide-react';
 import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface Sede {
   id: number;
@@ -22,6 +23,7 @@ interface Producto {
   precio: number;
   imagen: string;
   categoria: string;
+  stock?: number;
 }
 
 const categorias = ['Todos', 'Combos', 'Popcorn', 'Bebidas', 'Snacks'];
@@ -246,6 +248,10 @@ export default function DulceriaPage() {
                 const currentQuantity = snackInCart ? snackInCart.cantidad : 0;
 
                 const handleIncrement = () => {
+                  if (producto.stock !== undefined && currentQuantity >= producto.stock) {
+                    toast.warning(`Solo hay ${producto.stock} unidades disponibles en esta sede`);
+                    return;
+                  }
                   if (currentQuantity === 0) {
                     addSnack({
                       productoId: producto.id,
@@ -334,7 +340,7 @@ export default function DulceriaPage() {
       </div>
 
       {/* Barra de Acción Inferior */}
-      {(funcionId || (isTaquilla && snacks.length > 0)) && (
+      {(funcionId || snacks.length > 0) && (
         <motion.div 
           className="fixed bottom-0 left-0 right-0 p-6 bg-background/90 backdrop-blur-xl border-t border-border z-40"
           initial={{ y: 100 }}
