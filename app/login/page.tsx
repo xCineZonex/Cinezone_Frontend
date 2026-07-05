@@ -23,6 +23,7 @@ export default function LoginPage() {
     tipoDocumento: 'DNI',
     dni: '',
     genero: 'MASCULINO',
+    fechaNacimiento: '',
     confirmarPassword: '',
     aceptaTerminos: false,
   });
@@ -114,6 +115,31 @@ export default function LoginPage() {
           return;
         }
 
+        if (!formData.fechaNacimiento) {
+          setErrorMsg('La fecha de nacimiento es obligatoria.');
+          setLoading(false);
+          return;
+        }
+
+        const hoy = new Date();
+        const fechaNac = new Date(formData.fechaNacimiento);
+        let edad = hoy.getFullYear() - fechaNac.getFullYear();
+        const mes = hoy.getMonth() - fechaNac.getMonth();
+        if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
+          edad--;
+        }
+
+        if (edad < 17) {
+          setErrorMsg('Debes tener al menos 17 años para registrarte.');
+          setLoading(false);
+          return;
+        }
+        if (edad > 80) {
+          setErrorMsg('La edad máxima permitida para registrarse es de 80 años.');
+          setLoading(false);
+          return;
+        }
+
         await api.post('/auth/register', {
           nombre: formData.nombre,
           apellido: formData.apellido,
@@ -121,7 +147,8 @@ export default function LoginPage() {
           contrasena: formData.password,
           tipoDocumento: formData.tipoDocumento,
           dni: formData.dni,
-          genero: formData.genero
+          genero: formData.genero,
+          fechaNacimiento: formData.fechaNacimiento
         });
 
         setSuccessMsg('¡Registro exitoso! Redirigiendo a verificación...');
@@ -291,6 +318,28 @@ export default function LoginPage() {
                         <option value="FEMENINO">Femenino</option>
                         <option value="OTRO">Otro</option>
                       </select>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Fecha de Nacimiento (solo registro) */}
+                {!isLogin && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                  >
+                    <label className="block text-sm font-medium text-foreground mb-2">Fecha de Nacimiento</label>
+                    <div className="relative">
+                      <input
+                        type="date"
+                        required
+                        value={formData.fechaNacimiento}
+                        onChange={(e) => setFormData({ ...formData, fechaNacimiento: e.target.value })}
+                        className="w-full px-4 py-3 bg-secondary rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                        max={new Date(new Date().setFullYear(new Date().getFullYear() - 17)).toISOString().split('T')[0]}
+                        min={new Date(new Date().setFullYear(new Date().getFullYear() - 80)).toISOString().split('T')[0]}
+                      />
                     </div>
                   </motion.div>
                 )}
