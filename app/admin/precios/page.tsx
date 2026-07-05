@@ -68,6 +68,9 @@ function PriceRow({ base, sedePrices, isSuperAdmin, activeSedeId, handleSaveLoca
             <span className={`px-4 py-1 rounded-full text-xs font-black tracking-widest uppercase ${isActive ? 'bg-blue-500/20 text-blue-400' : 'bg-zinc-800 text-zinc-500'}`}>
               {base.formato || 'FORMAT_2D'}
             </span>
+            <span className={`px-4 py-1 rounded-full text-xs font-black tracking-widest uppercase ${isActive ? (base.faseComercial === 'Estreno' ? 'bg-red-500/20 text-red-400' : base.faseComercial === 'Preventa' ? 'bg-orange-500/20 text-orange-400' : 'bg-green-500/20 text-green-400') : 'bg-zinc-800 text-zinc-500'}`}>
+              {base.faseComercial || 'CARTELERA'}
+            </span>
             <div className="flex items-center gap-1.5 text-sm text-zinc-400 font-medium bg-zinc-900/50 px-3 py-1 rounded-full border border-zinc-800/50">
               <span>Base Referencial:</span>
               <span className="text-white font-bold">S/ {Number(base.basePrice).toFixed(2)}</span>
@@ -204,7 +207,7 @@ export default function PreciosAdminPage() {
   // Form states for base prices (SuperAdmin)
   const [showBaseForm, setShowBaseForm] = useState(false);
   const [editingBase, setEditingBase] = useState<any>(null);
-  const [baseForm, setBaseForm] = useState({ name: '', ticketType: 'NORMAL', formato: 'FORMAT_2D', basePrice: '' });
+  const [baseForm, setBaseForm] = useState({ name: '', ticketType: 'NORMAL', formato: 'FORMAT_2D', basePrice: '', faseComercial: 'Cartelera' });
 
   useEffect(() => {
     const userRole = localStorage.getItem('rol');
@@ -259,13 +262,14 @@ export default function PreciosAdminPage() {
         ticketType: baseForm.ticketType,
         formato: baseForm.formato,
         basePrice: parseFloat(baseForm.basePrice),
-        isActive: true
+        isActive: true,
+        faseComercial: baseForm.faseComercial
       };
       await api.post('/admin/catalogo/tipos-entrada', payload);
       toast.success('Precio base guardado correctamente', { icon: <CheckCircle2 className="text-green-500" /> });
       setShowBaseForm(false);
       setEditingBase(null);
-      setBaseForm({ name: '', ticketType: 'NORMAL', formato: 'FORMAT_2D', basePrice: '' });
+      setBaseForm({ name: '', ticketType: 'NORMAL', formato: 'FORMAT_2D', basePrice: '', faseComercial: 'Cartelera' });
       fetchBasePrices();
     } catch (e) {
       toast.error('Error al guardar precio base');
@@ -327,7 +331,7 @@ export default function PreciosAdminPage() {
             <button 
               onClick={() => {
                 setEditingBase(null);
-                setBaseForm({ name: '', ticketType: 'NORMAL', basePrice: '' });
+                setBaseForm({ name: '', ticketType: 'NORMAL', formato: 'FORMAT_2D', basePrice: '', faseComercial: 'Cartelera' });
                 setShowBaseForm(true);
               }}
               className="bg-white text-black hover:bg-zinc-200 px-6 py-4 rounded-2xl font-bold transition-all shadow-xl shadow-white/10 flex items-center gap-3 hover:scale-105 active:scale-95"
@@ -353,7 +357,7 @@ export default function PreciosAdminPage() {
                 <h2 className="text-2xl font-black mb-6 text-white flex items-center gap-3">
                   {editingBase ? 'Editar Boleto Base' : 'Nuevo Boleto Base'}
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-zinc-400 uppercase tracking-wider">Nombre Comercial</label>
                     <input 
@@ -378,7 +382,7 @@ export default function PreciosAdminPage() {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-zinc-400 uppercase tracking-wider">Formato (Tipo de Sala)</label>
+                    <label className="text-sm font-bold text-zinc-400 uppercase tracking-wider">Formato (Sala)</label>
                     <select 
                       className="w-full bg-black border border-zinc-800 rounded-2xl px-5 py-4 text-lg font-bold text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all appearance-none cursor-pointer"
                       value={baseForm.formato}
@@ -389,6 +393,18 @@ export default function PreciosAdminPage() {
                       <option value="VIP">VIP</option>
                       <option value="IMAX">IMAX</option>
                       <option value="FORMAT_4DX">4DX</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-zinc-400 uppercase tracking-wider">Fase Comercial</label>
+                    <select 
+                      className="w-full bg-black border border-zinc-800 rounded-2xl px-5 py-4 text-lg font-bold text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all appearance-none cursor-pointer"
+                      value={baseForm.faseComercial}
+                      onChange={e => setBaseForm({...baseForm, faseComercial: e.target.value})}
+                    >
+                      <option value="Cartelera">Cartelera (Regular)</option>
+                      <option value="Estreno">Estreno</option>
+                      <option value="Preventa">Preventa</option>
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -467,7 +483,7 @@ export default function PreciosAdminPage() {
                         handleSaveLocalPrice={handleSaveLocalPrice} 
                         onEditBase={(base: any) => {
                           setEditingBase(base);
-                          setBaseForm({ name: base.name, ticketType: base.ticketType, formato: base.formato || 'FORMAT_2D', basePrice: base.basePrice });
+                          setBaseForm({ name: base.name, ticketType: base.ticketType, formato: base.formato || 'FORMAT_2D', basePrice: base.basePrice, faseComercial: base.faseComercial || 'Cartelera' });
                           setShowBaseForm(true);
                         }}
                       />
@@ -494,7 +510,7 @@ export default function PreciosAdminPage() {
                           handleSaveLocalPrice={handleSaveLocalPrice} 
                           onEditBase={(base: any) => {
                             setEditingBase(base);
-                            setBaseForm({ name: base.name, ticketType: base.ticketType, formato: base.formato || 'FORMAT_2D', basePrice: base.basePrice });
+                            setBaseForm({ name: base.name, ticketType: base.ticketType, formato: base.formato || 'FORMAT_2D', basePrice: base.basePrice, faseComercial: base.faseComercial || 'Cartelera' });
                             setShowBaseForm(true);
                           }}
                         />
