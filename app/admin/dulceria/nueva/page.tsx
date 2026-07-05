@@ -104,26 +104,17 @@ export default function NuevaDulceriaPage() {
         esInsumo: false,
         imagen: imageUrl,
         cinemaId: formData.cinemaId ? parseInt(formData.cinemaId, 10) : null,
-        stockGenerado: null // Always 0 units globally or locally
+        stockGenerado: null, // Always 0 units globally or locally
+        ingredients: insumosRequeridos.map(i => ({
+          ingredientProductId: i.insumoId,
+          quantity: i.cantidad
+        }))
       };
 
-      // 1. Crear el Producto (Combo)
-      const res = await api.post('/admin/catalogo/productos', payload);
-      const newComboId = res.data.id;
-      
-      // 2. Si hay receta configurada, guardarla explícitamente
-      if (insumosRequeridos.length > 0) {
-        const recipePayload = {
-          comboProductId: newComboId,
-          ingredients: insumosRequeridos.map(i => ({
-            ingredientProductId: i.insumoId,
-            quantity: i.cantidad
-          }))
-        };
-        await api.post('/admin/catalogo/combos/receta', recipePayload);
-      }
+      // 1. Crear el Producto (Combo o Individual)
+      await api.post('/admin/catalogo/productos', payload);
 
-      toast.success('Combo creado exitosamente con 0 unidades. Los administradores de Sede podrán ensamblarlo desde Inventario.');
+      toast.success('Producto creado exitosamente. Los administradores de Sede podrán ensamblarlo desde Inventario.');
       router.push('/admin/dulceria');
     } catch (error: any) {
       console.error('Error creating product:', error);
@@ -137,9 +128,13 @@ export default function NuevaDulceriaPage() {
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-bold flex items-center gap-3">
-          <Popcorn className="w-8 h-8 text-primary" /> Nuevo Combo
+          <Popcorn className="w-8 h-8 text-primary" /> {formData.categoria === 'COMBO' ? 'Nuevo Combo' : 'Nuevo Producto'}
         </h1>
-        <p className="text-muted-foreground mt-1">Arma un nuevo combo global con 0 unidades. Cada Sede generará su propio stock ensamblando la receta.</p>
+        <p className="text-muted-foreground mt-1">
+          {formData.categoria === 'COMBO' 
+            ? 'Arma un nuevo combo global vinculando sus insumos.' 
+            : 'Arma un nuevo producto vinculando su insumo global.'} Cada Sede generará su propio stock ensamblándolo.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -163,7 +158,7 @@ export default function NuevaDulceriaPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold">Nombre del Combo *</label>
+                <label className="text-sm font-semibold">{formData.categoria === 'COMBO' ? 'Nombre del Combo *' : 'Nombre del Producto *'}</label>
                 <input
                   type="text"
                   name="nombre"

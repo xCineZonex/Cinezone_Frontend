@@ -13,6 +13,7 @@ interface Product {
   precio: number;
   categoria: string;
   imagen: string;
+  descripcion?: string;
 }
 
 interface Sede {
@@ -52,6 +53,10 @@ export default function InventarioPage() {
   // Tab State
   const [activeTab, setActiveTab] = useState<'INVENTARIO' | 'SOLICITUDES'>('INVENTARIO');
   const [solicitudes, setSolicitudes] = useState<any[]>([]);
+
+  // Editar Insumo
+  const [isEditingInsumo, setIsEditingInsumo] = useState(false);
+  const [editInsumoForm, setEditInsumoForm] = useState({ nombre: '', descripcion: '', categoria: '' });
 
   // Ensamblar Combo
   const [ensamblajeCantidad, setEnsamblajeCantidad] = useState('');
@@ -194,8 +199,7 @@ export default function InventarioPage() {
       let imageUrl = null;
       if (imageFile) {
         const uploadData = new FormData();
-        uploadData.append('file', imageFile);
-        const uploadRes = await api.post('/admin/upload/image', uploadData, {
+        uploadData.append('file', imageFile);        const uploadRes = await api.post('/admin/upload/image', uploadData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         imageUrl = uploadRes.data.url;
@@ -205,19 +209,43 @@ export default function InventarioPage() {
         nombre: newInsumo.nombre,
         descripcion: 'Insumo interno',
         precio: 0,
-        categoria: 'INSUMO',
+        categoria: 'DULCE',
         esInsumo: true,
         imagen: imageUrl,
-        cinemaId: null,
-        stockGenerado: null
+        stockGenerado: newInsumo.stock ? parseInt(newInsumo.stock) : 0,
+        cinemaId: newInsumo.sedeId ? parseInt(newInsumo.sedeId) : null
       });
-      toast.success('Insumo global creado correctamente');
-      setIsModalOpen(false);
+
+      toast.success('Insumo creado exitosamente');
       setNewInsumo({ nombre: '', sedeId: '', stock: '' });
       setImageFile(null);
       fetchProducts();
+      setIsModalOpen(false);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Error al crear insumo');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateInsumo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProduct) return;
+    setIsSubmitting(true);
+    try {
+      await api.put(`/admin/catalogo/productos/${selectedProduct.id}`, {
+        nombre: editInsumoForm.nombre,
+        descripcion: editInsumoForm.descripcion,
+        categoria: editInsumoForm.categoria,
+        precio: selectedProduct.precio
+      });
+      toast.success('Atributos del insumo actualizados');
+      setIsEditingInsumo(false);
+      fetchProducts();
+      // Update local selected state to reflect changes
+      setSelectedProduct(prev => prev ? { ...prev, ...editInsumoForm } : null);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Error al actualizar insumo');
     } finally {
       setIsSubmitting(false);
     }
@@ -448,6 +476,99 @@ export default function InventarioPage() {
             </div>
           ) : (
             <>
+              {/* Detalles y Edición de Insumo */}
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-card border border-border rounded-3xl p-6 shadow-sm"
+              >
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold">Detalles del Insumo</h2>
+                  {!isEditingInsumo ? (
+                    <button 
+                      onClick={() => {
+                        setEditInsumoForm({
+                          nombre: selectedProduct.nombre,
+                          descripcion: selectedProduct.descripcion || '',
+                          categoria: selectedProduct.categoria
+                        });
+                        setIsEditingInsumo(true);
+                      }}
+                      className="px-4 py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg text-sm font-bold transition-colors"
+                    >
+                      Editar
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => setIsEditingInsumo(false)}
+                      className="px-4 py-2 bg-secondary text-foreground hover:bg-secondary/80 rounded-lg text-sm font-bold transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                  )}
+                </div>
+                
+                {isEditingInsumo ? (
+                  <form onSubmit={handleUpdateInsumo} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-muted-foreground mb-1 uppercase">Nombre</label>
+                        <input 
+                          type="text" required
+                          value={editInsumoForm.nombre}
+                          onChange={e => setEditInsumoForm({...editInsumoForm, nombre: e.target.value})}
+                          className="w-full bg-secondary rounded-xl px-4 py-3 outline-none" 
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-muted-foreground mb-1 uppercase">Categoría</label>
+                        <select 
+                          value={editInsumoForm.categoria}
+                          onChange={e => setEditInsumoForm({...editInsumoForm, categoria: e.target.value})}
+                          className="w-full bg-secondary rounded-xl px-4 py-3 outline-none"
+                        >
+                          <option value="DULCE">Dulce / Genérico</option>
+                          <option value="BEBIDA">Bebida</option>
+                          <option value="SNACK">Snack</option>
+                          <option value="POP_CORN">Popcorn (Canchita)</option>
+                        </select>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-bold text-muted-foreground mb-1 uppercase">Descripción</label>
+                        <input 
+                          type="text"
+                          value={editInsumoForm.descripcion}
+                          onChange={e => setEditInsumoForm({...editInsumoForm, descripcion: e.target.value})}
+                          className="w-full bg-secondary rounded-xl px-4 py-3 outline-none" 
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end pt-2">
+                      <button 
+                        type="submit" disabled={isSubmitting}
+                        className="px-6 py-2 bg-primary text-black font-bold rounded-xl hover:bg-primary/90 transition-colors"
+                      >
+                        {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-xs font-bold text-muted-foreground uppercase mb-1">Nombre</p>
+                      <p className="font-semibold">{selectedProduct.nombre}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-muted-foreground uppercase mb-1">Categoría</p>
+                      <p className="font-semibold">{selectedProduct.categoria}</p>
+                    </div>
+                    <div className="md:col-span-3">
+                      <p className="text-xs font-bold text-muted-foreground uppercase mb-1">Descripción</p>
+                      <p className="font-semibold">{selectedProduct.descripcion || 'Sin descripción'}</p>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
 
 
               {/* Nuevo Movimiento */}
