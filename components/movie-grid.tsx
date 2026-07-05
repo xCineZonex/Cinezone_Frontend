@@ -96,7 +96,7 @@ function MovieGridContent() {
            <div className="text-center py-16 text-muted-foreground">Cargando cartelera...</div>
         ) : (
           <motion.div
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6"
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 items-start"
             layout
           >
             {peliculasFiltradas.map((pelicula, index) => (
@@ -105,8 +105,9 @@ function MovieGridContent() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.05 }}
                 layout
+                className="flex flex-col"
               >
                 {/* Asumimos que MovieCard espera las propiedades que manda backend */}
                 <MovieCard pelicula={{
@@ -123,6 +124,7 @@ function MovieGridContent() {
               </motion.div>
             ))}
           </motion.div>
+
         )}
 
         {/* Empty State */}
