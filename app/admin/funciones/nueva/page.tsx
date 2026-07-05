@@ -37,7 +37,7 @@ export default function NuevaFuncionPage() {
     // Cargar películas iniciales
     const fetchInitialData = async () => {
       try {
-        const movRes = await api.get('/admin/catalogo/peliculas');
+        const movRes = await api.get('/admin/catalogo/peliculas/disponibles');
         setPeliculas(movRes.data);
       } catch (error) {
         console.error('Error fetching initial data:', error);

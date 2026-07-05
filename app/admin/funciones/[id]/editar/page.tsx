@@ -42,7 +42,7 @@ export default function EditarFuncionPage() {
   const fetchInitialDataAndFuncion = async () => {
     try {
       const [movRes, sedesRes, funcionesRes] = await Promise.all([
-        api.get('/admin/catalogo/peliculas'),
+        api.get('/admin/catalogo/peliculas/disponibles'),
         api.get('/public/sedes'),
         api.get('/admin/catalogo/funciones')
       ]);
