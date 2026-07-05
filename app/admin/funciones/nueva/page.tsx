@@ -82,7 +82,6 @@ export default function NuevaFuncionPage() {
         else if (tipoSala === '3D' || tipoSala === 'FORMAT_3D') newFormato = 'FORMAT_3D';
         else if (tipoSala === 'IMAX') newFormato = 'IMAX';
         else if (tipoSala === '4DX' || tipoSala === 'FORMAT_4DX') newFormato = 'FORMAT_4DX';
-        else if (tipoSala === 'VIP') newFormato = 'FORMAT_2D';
       }
       setFormData({
         ...formData,
@@ -170,7 +169,7 @@ export default function NuevaFuncionPage() {
 
   const selectedMovie = peliculas.find(p => p.id.toString() === formData.movieId);
   const selectedSala = salas.find(s => s.id.toString() === formData.auditoriumId);
-  const isFormatoDisabled = !!selectedSala;
+  const isFormatoDisabled = selectedSala && selectedSala.tipo?.toUpperCase() !== 'VIP';
   
   const previewFunction = formData.auditoriumId && formData.fechaHora && selectedMovie ? {
     auditoriumId: formData.auditoriumId,
