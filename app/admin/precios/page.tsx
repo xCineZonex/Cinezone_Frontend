@@ -195,8 +195,8 @@ function PriceRow({ base, sedePrices, isSuperAdmin, activeSedeId, handleSaveLoca
   );
 }
 
-export default function PreciosAdminPage() {
-  const { activeSedeId } = useSedeStore();
+  export default function PreciosAdminPage() {
+  const { activeSedeId, assignedSedes, setAssignedSedes } = useSedeStore();
   const [rol, setRol] = useState('');
   
   const [basePrices, setBasePrices] = useState<any[]>([]);
@@ -238,6 +238,21 @@ export default function PreciosAdminPage() {
       setSedePrices(res.data);
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const toggleBeneficio = async () => {
+    if (!activeSedeId || activeSedeId === 'all') return;
+    const currentSede = assignedSedes.find(s => s.id.toString() === activeSedeId);
+    if (!currentSede) return;
+    try {
+      await api.patch(`/admin/sedes/${currentSede.id}/beneficio-vip-cumpleanos`, null, {
+        params: { habilitado: !currentSede.vipCumpleanosHabilitado }
+      });
+      toast.success(!currentSede.vipCumpleanosHabilitado ? 'Beneficio de Cumpleaños activado para tu sede' : 'Beneficio de Cumpleaños desactivado');
+      setAssignedSedes(assignedSedes.map(s => s.id === currentSede.id ? { ...s, vipCumpleanosHabilitado: !currentSede.vipCumpleanosHabilitado } : s));
+    } catch {
+      toast.error('Error al cambiar estado del beneficio');
     }
   };
 
@@ -494,9 +509,27 @@ export default function PreciosAdminPage() {
 
               {/* Entradas Beneficio */}
               <div className="mt-8">
-                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2 border-b border-zinc-800 pb-2">
-                  <Activity className="w-5 h-5 text-amber-500" /> Entradas de Beneficio / Promoción
-                </h2>
+                <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-zinc-800 pb-2 mb-4 gap-4">
+                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-amber-500" /> Entradas de Beneficio / Promoción
+                  </h2>
+                  
+                  {/* Toggle para ADMIN_SEDE (y SUPER_ADMIN con sede seleccionada) */}
+                  {rol === 'ADMIN_SEDE' && activeSedeId && activeSedeId !== 'all' && (
+                    <button
+                      onClick={toggleBeneficio}
+                      className={`px-4 py-2 rounded-xl text-xs font-black tracking-widest uppercase transition-all shadow-lg shadow-black/50 ${
+                        assignedSedes.find(s => s.id.toString() === activeSedeId)?.vipCumpleanosHabilitado
+                          ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50 hover:bg-amber-500 hover:text-white'
+                          : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700'
+                      }`}
+                    >
+                      {assignedSedes.find(s => s.id.toString() === activeSedeId)?.vipCumpleanosHabilitado 
+                        ? '🎂 Cumpleaños VIP ON' 
+                        : '❌ Cumpleaños VIP OFF'}
+                    </button>
+                  )}
+                </div>
                 <div className="flex flex-col gap-5">
                   <AnimatePresence>
                     {basePrices.filter(b => b.ticketType === 'BENEFICIO').length > 0 ? (
