@@ -64,6 +64,10 @@ export default function NuevaDulceriaPage() {
       toast.error('Este insumo ya fue agregado');
       return;
     }
+    if (formData.categoria !== 'COMBO' && insumosRequeridos.length >= 1) {
+      toast.error('Solo puedes agregar 1 insumo para este tipo de producto');
+      return;
+    }
     setInsumosRequeridos([...insumosRequeridos, { insumoId: insumo.id, cantidad: 1, nombre: insumo.nombre }]);
   };
 
@@ -259,9 +263,13 @@ export default function NuevaDulceriaPage() {
 
             {/* SECCIÓN DE ENSAMBLAJE DE COMBO */}
             <div className="mt-8 p-6 bg-secondary/30 rounded-2xl border border-border">
-              <h3 className="text-lg font-bold mb-1">Insumos Requeridos (Receta Global)</h3>
+              <h3 className="text-lg font-bold mb-1">
+                {formData.categoria === 'COMBO' ? 'Insumos Requeridos (Receta Global)' : 'Insumo del Producto'}
+              </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Define la receta general para todas las sedes. Las sedes solo podrán ensamblar este combo si tienen estos insumos en stock.
+                {formData.categoria === 'COMBO'
+                  ? 'Define la receta general para todas las sedes. Las sedes solo podrán ensamblar este combo si tienen estos insumos en stock.'
+                  : 'Vincula el insumo base de este producto para control de inventario.'}
               </p>
               <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl mb-6">
                 <p className="text-sm text-amber-600 font-medium">
@@ -316,7 +324,7 @@ export default function NuevaDulceriaPage() {
               >
                 {loading ? 'Guardando...' : (
                   <>
-                    <Save className="w-5 h-5" /> Guardar Combo
+                    <Save className="w-5 h-5" /> {formData.categoria === 'COMBO' ? 'Guardar Combo' : 'Guardar Producto'}
                   </>
                 )}
               </button>
@@ -328,32 +336,46 @@ export default function NuevaDulceriaPage() {
         <div className="lg:col-span-1">
           <div className="bg-card border border-border rounded-3xl p-6 shadow-sm sticky top-8 h-[calc(100vh-8rem)] flex flex-col">
             <h2 className="text-xl font-bold flex items-center gap-2 mb-2">
-              <Package className="w-5 h-5 text-primary" /> Insumos Globales
+              <Package className="w-5 h-5 text-primary" />
+              {formData.categoria === 'COMBO' ? 'Insumos Globales' : 'Insumo del Producto'}
             </h2>
             <p className="text-sm text-muted-foreground mb-6 pb-4 border-b border-border">
-              Agrega insumos a la receta de este combo.
+              {formData.categoria === 'COMBO'
+                ? 'Agrega insumos a la receta de este combo.'
+                : 'Selecciona el insumo base de este producto.'}
             </p>
             
             <div className="flex-1 overflow-y-auto pr-2 space-y-3">
-              {insumosDisponibles.length === 0 ? (
-                <div className="text-center text-muted-foreground text-sm mt-8">No hay insumos registrados en el catálogo.</div>
-              ) : (
-                insumosDisponibles.map((insumo) => (
-                  <div key={insumo.id} className="p-4 bg-secondary/50 rounded-xl border border-border flex justify-between items-center hover:bg-secondary transition-colors">
-                    <div>
-                      <h4 className="font-bold text-sm">{insumo.nombre}</h4>
+              {(() => {
+                const filteredInsumos = formData.categoria === 'COMBO'
+                  ? insumosDisponibles
+                  : insumosDisponibles.filter(i => {
+                      const cat = formData.categoria.toUpperCase();
+                      return i.categoria?.toUpperCase() === cat || i.categoria?.toUpperCase() === 'INSUMO';
+                    });
+                return filteredInsumos.length === 0 ? (
+                  <div className="text-center text-muted-foreground text-sm mt-8">No hay insumos disponibles para esta categoría.</div>
+                ) : (
+                  filteredInsumos.map((insumo) => (
+                    <div key={insumo.id} className="p-4 bg-secondary/50 rounded-xl border border-border flex justify-between items-center hover:bg-secondary transition-colors">
+                      <div>
+                        <h4 className="font-bold text-sm">{insumo.nombre}</h4>
+                        {insumo.categoria && (
+                          <p className="text-xs text-muted-foreground">{insumo.categoria}</p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => addInsumo(insumo)}
+                        disabled={insumosRequeridos.some(i => i.insumoId === insumo.id)}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => addInsumo(insumo)}
-                      disabled={insumosRequeridos.some(i => i.insumoId === insumo.id)}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))
-              )}
+                  ))
+                );
+              })()}
             </div>
           </div>
         </div>

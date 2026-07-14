@@ -68,7 +68,7 @@ export default function InventarioPage() {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [newInsumo, setNewInsumo] = useState({ nombre: '', sedeId: '', stock: '' });
+  const [newInsumo, setNewInsumo] = useState({ nombre: '', sedeId: '', stock: '', tipoInsumo: 'BEBIDA' });
 
   useEffect(() => {
     setUserRole(localStorage.getItem('rol'));
@@ -222,7 +222,7 @@ export default function InventarioPage() {
         nombre: newInsumo.nombre,
         descripcion: 'Insumo interno',
         precio: 0,
-        categoria: 'DULCE',
+        categoria: newInsumo.tipoInsumo,
         esInsumo: true,
         imagen: imageUrl,
         stockGenerado: newInsumo.stock ? parseInt(newInsumo.stock) : 0,
@@ -230,7 +230,7 @@ export default function InventarioPage() {
       });
 
       toast.success('Insumo creado exitosamente');
-      setNewInsumo({ nombre: '', sedeId: '', stock: '' });
+      setNewInsumo({ nombre: '', sedeId: '', stock: '', tipoInsumo: 'BEBIDA' });
       setImageFile(null);
       fetchProducts();
       setIsModalOpen(false);
@@ -364,6 +364,21 @@ export default function InventarioPage() {
                   className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-primary"
                   placeholder="Ej. Vaso Plástico 16oz"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2">Tipo de Insumo *</label>
+                <select
+                  required
+                  value={newInsumo.tipoInsumo}
+                  onChange={(e) => setNewInsumo({...newInsumo, tipoInsumo: e.target.value})}
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="BEBIDA">Bebida</option>
+                  <option value="SNACK">Snack</option>
+                  <option value="DULCE">Dulce</option>
+                  <option value="POP_CORN">Popcorn (Canchita)</option>
+                  <option value="INSUMO">Insumo General</option>
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-semibold mb-2">Imagen Referencial</label>

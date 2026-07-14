@@ -18,6 +18,12 @@ export default function DulceriaStaffPage() {
   const [showOpenModal, setShowOpenModal] = useState(false);
   const [showVoidModal, setShowVoidModal] = useState(false);
 
+  // Modal DNI
+  const [showDniModal, setShowDniModal] = useState(false);
+  const [dniInput, setDniInput] = useState('');
+  const [dniSearching, setDniSearching] = useState(false);
+  const [dniCliente, setDniCliente] = useState<{id: string, nombre: string} | null>(null);
+
   const fetchShiftStatus = async () => {
     try {
       const res = await api.get('/taquilla/caja/estado');
@@ -36,6 +42,38 @@ export default function DulceriaStaffPage() {
   }, []);
 
   const startSale = () => {
+    router.push('/dulceria');
+  };
+
+  const handleDniSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (dniInput.length < 8) return;
+    setDniSearching(true);
+    try {
+      const res = await api.post('/taquilla/buscar-cliente', { dni: dniInput });
+      if (res.data.tipo === 'REGISTRADO') {
+        setDniCliente({ id: res.data.id, nombre: res.data.nombreCompleto });
+        toast.success(`Cliente encontrado: ${res.data.nombreCompleto}`);
+      } else {
+        setDniCliente(null);
+        toast.info('Cliente no registrado. Puedes continuar como venta anónima.');
+      }
+    } catch (err: any) {
+      if (err.response?.status !== 403) toast.error('Error al buscar cliente');
+    } finally {
+      setDniSearching(false);
+    }
+  };
+
+  const proceedToSale = () => {
+    if (dniCliente) {
+      localStorage.setItem('taquillaClienteId', dniCliente.id);
+      localStorage.setItem('taquillaClienteNombre', dniCliente.nombre);
+    } else {
+      localStorage.removeItem('taquillaClienteId');
+      localStorage.removeItem('taquillaClienteNombre');
+    }
+    setShowDniModal(false);
     router.push('/dulceria');
   };
 
@@ -63,6 +101,60 @@ export default function DulceriaStaffPage() {
           )}
         
         <VoidSaleModal isOpen={showVoidModal} onClose={() => setShowVoidModal(false)} />
+
+        {/* Modal DNI */}
+        {showDniModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-card border border-border rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl"
+            >
+              <h2 className="text-2xl font-bold mb-2">Validar Cliente</h2>
+              <p className="text-sm text-muted-foreground mb-6">Ingresa el DNI del cliente para asociar la venta (opcional).</p>
+
+              {!dniCliente ? (
+                <form onSubmit={handleDniSearch} className="space-y-4">
+                  <input
+                    type="text"
+                    maxLength={8}
+                    placeholder="DNI del cliente..."
+                    value={dniInput}
+                    onChange={(e) => setDniInput(e.target.value.replace(/\D/g, ''))}
+                    className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-2 ring-primary"
+                  />
+                  <button
+                    type="submit"
+                    disabled={dniSearching || dniInput.length < 8}
+                    className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl disabled:opacity-50"
+                  >
+                    {dniSearching ? 'Buscando...' : 'Buscar Cliente'}
+                  </button>
+                </form>
+              ) : (
+                <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl mb-4">
+                  <p className="text-xs text-primary font-bold uppercase">Cliente Encontrado</p>
+                  <p className="font-black text-lg">{dniCliente.nombre}</p>
+                </div>
+              )}
+
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={() => { setShowDniModal(false); setDniInput(''); setDniCliente(null); }}
+                  className="flex-1 py-3 border border-border rounded-xl font-semibold hover:bg-secondary transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={proceedToSale}
+                  className="flex-1 py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-colors"
+                >
+                  {dniCliente ? 'Iniciar Venta' : 'Sin DNI'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
 
         {/* Sidebar / Menu rápido */}
       <StaffSidebar 
@@ -105,7 +197,7 @@ export default function DulceriaStaffPage() {
             ) : (
               <>
                 <button 
-                  onClick={startSale}
+                  onClick={() => setShowDniModal(true)}
                   className="w-full py-6 bg-primary text-primary-foreground font-black rounded-2xl text-xl flex items-center justify-center gap-3 hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95"
                 >
                   <Popcorn className="w-8 h-8" /> 

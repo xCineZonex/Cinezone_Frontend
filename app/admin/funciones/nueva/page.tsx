@@ -82,7 +82,7 @@ export default function NuevaFuncionPage() {
         else if (tipoSala === '3D' || tipoSala === 'FORMAT_3D') newFormato = 'FORMAT_3D';
         else if (tipoSala === 'IMAX') newFormato = 'IMAX';
         else if (tipoSala === '4DX' || tipoSala === 'FORMAT_4DX') newFormato = 'FORMAT_4DX';
-        else if (tipoSala === 'VIP') newFormato = 'FORMAT_2D';
+        else if (tipoSala === 'VIP') newFormato = 'VIP';
       }
       setFormData({
         ...formData,
@@ -298,6 +298,7 @@ export default function NuevaFuncionPage() {
                 <option value="FORMAT_2D">2D Estándar</option>
                 <option value="FORMAT_3D">3D Digital</option>
                 <option value="IMAX">IMAX</option>
+                <option value="VIP">VIP</option>
                 <option value="FORMAT_4DX">4DX</option>
               </select>
             </div>

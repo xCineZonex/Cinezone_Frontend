@@ -42,6 +42,7 @@ export default function CheckoutPagoPage() {
   const [newClient, setNewClient] = useState({ nombre: '', apellido: '' });
   const [efectivoRecibido, setEfectivoRecibido] = useState('');
   const [isMounted, setIsMounted] = useState(false);
+  const [dulceriaAnonima, setDulceriaAnonima] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -49,6 +50,15 @@ export default function CheckoutPagoPage() {
     setRol(currentRol);
     if (['TAQUILLA', 'DULCERIA', 'ADMIN_SEDE', 'STAFF'].includes(currentRol)) {
       setMetodoPago('EFECTIVO');
+    }
+    // Si viene de la página de staff con un cliente ya validado
+    const savedClienteId = localStorage.getItem('taquillaClienteId');
+    const savedClienteNombre = localStorage.getItem('taquillaClienteNombre');
+    if (savedClienteId && savedClienteNombre) {
+      setTaquillaCliente({ id: savedClienteId, nombre: savedClienteNombre });
+      // Limpiar después de usar
+      localStorage.removeItem('taquillaClienteId');
+      localStorage.removeItem('taquillaClienteNombre');
     }
   }, []);
 
@@ -207,12 +217,12 @@ export default function CheckoutPagoPage() {
         snacks: snacks.map(s => ({ productoId: s.productoId, cantidad: s.cantidad })),
         montoTotalPago: Number(getGranTotal()),
         numeroTarjeta: "4557 **** **** 0012",
-        titularTarjeta: (!funcionId && snacks.length > 0) ? newClient.nombre : "CLIENTE CINEZONE",
+        titularTarjeta: taquillaCliente ? taquillaCliente.nombre : "CLIENTE CINEZONE",
         metodoPago: metodoPago,
         idempotencyKey: idempotencyKey
       };
 
-      if (funcionId && taquillaCliente) {
+      if (taquillaCliente) {
         payload.clienteId = taquillaCliente.id;
       }
 
@@ -399,25 +409,12 @@ export default function CheckoutPagoPage() {
                 <div className="space-y-4 relative z-10">
                   {['TAQUILLA', 'DULCERIA', 'ADMIN_SEDE', 'STAFF'].includes(rol) ? (
                     <div className="space-y-4">
-                      {isDulceriaOnly ? (
-                        <div className="space-y-2">
-                           <p className="text-sm font-bold">Nombre del Comprador</p>
-                           <input
-                             type="text"
-                             placeholder="Ej. Juan Pérez"
-                             required
-                             value={newClient.nombre}
-                             onChange={(e) => setNewClient({...newClient, nombre: e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')})}
-                             className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary outline-none"
-                           />
-                        </div>
-                      ) : !taquillaCliente ? (
+                      {!taquillaCliente && !dulceriaAnonima ? (
                         <>
                           <form onSubmit={handleSearchDni} className="flex gap-2 h-12">
                             <input
                               type="text"
                               placeholder="DNI del cliente..."
-                              required
                               maxLength={8}
                               value={dni}
                               onChange={(e) => setDni(e.target.value.replace(/\D/g, ''))}
@@ -459,14 +456,28 @@ export default function CheckoutPagoPage() {
                               </button>
                             </form>
                           )}
+                          <button
+                            type="button"
+                            onClick={() => setDulceriaAnonima(true)}
+                            className="w-full py-2 text-sm text-muted-foreground border border-border rounded-xl hover:bg-secondary transition-colors"
+                          >
+                            Continuar sin cliente registrado
+                          </button>
                         </>
-                      ) : (
+                      ) : taquillaCliente ? (
                         <div className="p-3 bg-primary/10 border border-primary/20 rounded-xl flex justify-between items-center">
                           <div>
                             <p className="text-xs text-primary font-bold uppercase">Cliente</p>
                             <p className="text-sm font-black">{taquillaCliente.nombre}</p>
                           </div>
-                          <button onClick={() => setTaquillaCliente(null)} className="text-xs text-muted-foreground hover:text-destructive underline">
+                          <button onClick={() => { setTaquillaCliente(null); setDulceriaAnonima(false); }} className="text-xs text-muted-foreground hover:text-destructive underline">
+                            Cambiar
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="p-3 bg-secondary/50 border border-border rounded-xl flex justify-between items-center">
+                          <p className="text-sm text-muted-foreground font-semibold">Venta sin cliente registrado</p>
+                          <button onClick={() => setDulceriaAnonima(false)} className="text-xs text-muted-foreground hover:text-destructive underline">
                             Cambiar
                           </button>
                         </div>
@@ -508,7 +519,7 @@ export default function CheckoutPagoPage() {
 
                       <button
                         onClick={handlePayment}
-                        disabled={isProcessing || isExpired || (!isDulceriaOnly && !taquillaCliente) || (isDulceriaOnly && !newClient.nombre)}
+                        disabled={isProcessing || isExpired || (!taquillaCliente && !dulceriaAnonima)}
                         className="w-full flex items-center justify-center gap-3 py-5 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-black text-lg rounded-2xl transition-all shadow-lg"
                       >
                         {isProcessing ? 'Procesando...' : 'Confirmar Venta en Taquilla'}

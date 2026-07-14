@@ -15,6 +15,7 @@ export default function CheckoutEntradasPage() {
 
   const [generalTickets, setGeneralTickets] = useState<any[]>([]);
   const [dynamicBenefits, setDynamicBenefits] = useState<any[]>([]);
+  const [birthdayBenefit, setBirthdayBenefit] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -96,7 +97,18 @@ export default function CheckoutEntradasPage() {
       ]);
 
       if (ticketsRes.status === 'fulfilled') {
-        const apiTickets = ticketsRes.value.data.map((t: any) => ({
+        const data = ticketsRes.value.data;
+        const bday = data.find((t: any) => t.tipo === 'BENEFICIO_CUMPLEANOS');
+        if (bday) {
+          setBirthdayBenefit({
+            id: bday.tipo,
+            name: bday.nombre || 'Entrada Cumpleaños',
+            price: bday.precio,
+            pendingBenefitId: bday.pendingBenefitId,
+          });
+        }
+        
+        const apiTickets = data.filter((t: any) => t.tipo !== 'BENEFICIO_CUMPLEANOS').map((t: any) => ({
           id: t.tipo, 
           name: t.nombre || t.tipo,
           description: t.tipo === 'NORMAL' ? 'Entrada General' : t.tipo === 'TERCERA_EDAD' ? 'Mayores 60 años' : t.tipo === 'BENEFICIO' ? 'Entrada Promocional / Beneficio' : 'Conadis/Niños',
@@ -155,7 +167,8 @@ export default function CheckoutEntradasPage() {
 
   const totalSelected = 
     Object.values(selectedTickets).reduce((a, b) => a + b, 0) + 
-    dynamicBenefits.reduce((acc, b) => acc + (selectedBenefits[String(b.id)] || 0) * (b.ticketCount || 1), 0);
+    dynamicBenefits.reduce((acc, b) => acc + (selectedBenefits[String(b.id)] || 0) * (b.ticketCount || 1), 0) +
+    (birthdayBenefit && selectedTickets['BENEFICIO_CUMPLEANOS'] ? selectedTickets['BENEFICIO_CUMPLEANOS'] : 0);
 
   const isMatched = totalSelected === seatsCount;
 
@@ -188,6 +201,16 @@ export default function CheckoutEntradasPage() {
         });
       }
     });
+
+    if (birthdayBenefit && selectedTickets['BENEFICIO_CUMPLEANOS'] > 0) {
+      finalTickets.push({
+        label: birthdayBenefit.name,
+        cantidad: selectedTickets['BENEFICIO_CUMPLEANOS'],
+        precio: birthdayBenefit.price,
+        typeKey: 'BENEFICIO_CUMPLEANOS',
+        benefitId: birthdayBenefit.pendingBenefitId
+      });
+    }
 
     setTickets(finalTickets);
   }, [selectedTickets, selectedBenefits, generalTickets, dynamicBenefits, setTickets]);
@@ -305,6 +328,42 @@ export default function CheckoutEntradasPage() {
               {rol === 'STAFF' ? 'Continuar al Pago' : 'Continuar a Dulcería'}
             </button>
           </div>
+
+          {birthdayBenefit && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-r from-amber-500 to-pink-500 p-[2px] rounded-2xl mb-6 shadow-xl shadow-amber-500/20"
+            >
+              <div className="bg-background/95 backdrop-blur-xl p-6 rounded-[14px] flex flex-col sm:flex-row items-center gap-6">
+                <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-pink-500 rounded-full flex items-center justify-center shrink-0 shadow-inner">
+                  <span className="text-4xl">🎂</span>
+                </div>
+                <div className="flex-1 text-center sm:text-left">
+                  <h3 className="text-2xl font-black bg-gradient-to-r from-amber-500 to-pink-500 bg-clip-text text-transparent">¡Feliz Cumpleaños!</h3>
+                  <p className="text-muted-foreground mt-1 font-medium">Tienes {birthdayBenefit.name} esperando por ti.</p>
+                  {birthdayBenefit.price === 0 && <span className="inline-block mt-2 px-3 py-1 bg-green-500/20 text-green-500 font-black text-xs rounded-full uppercase tracking-widest border border-green-500/30">Totalmente Gratis</span>}
+                </div>
+                <div className="flex items-center gap-4 bg-secondary/50 p-2 rounded-xl border border-border">
+                  <button 
+                    onClick={() => handleGeneralChange('BENEFICIO_CUMPLEANOS', -1)} 
+                    disabled={(selectedTickets['BENEFICIO_CUMPLEANOS'] || 0) <= 0} 
+                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-background hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50 transition-all shadow-sm"
+                  >
+                    <Minus className="w-5 h-5" />
+                  </button>
+                  <span className="font-black text-xl w-6 text-center">{selectedTickets['BENEFICIO_CUMPLEANOS'] || 0}</span>
+                  <button 
+                    onClick={() => handleGeneralChange('BENEFICIO_CUMPLEANOS', 1)} 
+                    disabled={totalSelected + 1 > seatsCount} 
+                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-background hover:bg-green-500 hover:text-white disabled:opacity-50 transition-all shadow-sm"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Column 1: Entradas generales */}

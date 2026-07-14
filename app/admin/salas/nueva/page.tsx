@@ -146,7 +146,7 @@ export default function SeatEditorPage() {
     const t = tipo?.toUpperCase() || 'FORMAT_2D';
     const baseTools: Tool[] = ['ESTANDAR', 'DISCAPACIDAD'];
     if (t === 'VIP') return ['VIP', 'ERASER'];
-    if (t === 'IMAX') return [...baseTools, 'VIP', 'ERASER'];
+    if (t === 'IMAX') return [...baseTools, 'ERASER'];
     return [...baseTools, 'ERASER'];
   };
 
