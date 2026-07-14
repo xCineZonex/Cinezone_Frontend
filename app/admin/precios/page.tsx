@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSedeStore } from '@/store/useSedeStore';
 import api from '@/lib/api';
 import { Card } from '@/components/ui/card';
-import { Save, PlusCircle, Pencil, Trash, Ticket, ArrowRight, DollarSign, Activity, CheckCircle2, AlertCircle, CalendarDays } from 'lucide-react';
+import { Save, PlusCircle, Pencil, Trash, Ticket, ArrowRight, DollarSign, Activity, CheckCircle2, AlertCircle, CalendarDays, ToggleLeft, ToggleRight, Cake, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -203,6 +203,7 @@ function PriceRow({ base, sedePrices, isSuperAdmin, activeSedeId, handleSaveLoca
   const [sedePrices, setSedePrices] = useState<any[]>([]);
   
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [togglingSedeId, setTogglingSedeId] = useState<number | null>(null);
 
   // Form states for base prices (SuperAdmin)
   const [showBaseForm, setShowBaseForm] = useState(false);
@@ -241,18 +242,18 @@ function PriceRow({ base, sedePrices, isSuperAdmin, activeSedeId, handleSaveLoca
     }
   };
 
-  const toggleBeneficio = async () => {
-    if (!activeSedeId || activeSedeId === 'all') return;
-    const currentSede = assignedSedes.find(s => s.id.toString() === activeSedeId);
-    if (!currentSede) return;
+  const handleToggleSedeVip = async (sedeId: number, currentValue: boolean) => {
+    setTogglingSedeId(sedeId);
     try {
-      await api.patch(`/admin/sedes/${currentSede.id}/beneficio-vip-cumpleanos`, null, {
-        params: { habilitado: !currentSede.vipCumpleanosHabilitado }
+      await api.patch(`/admin/sedes/${sedeId}/beneficio-vip-cumpleanos`, null, {
+        params: { habilitado: !currentValue }
       });
-      toast.success(!currentSede.vipCumpleanosHabilitado ? 'Beneficio de Cumpleaños activado para tu sede' : 'Beneficio de Cumpleaños desactivado');
-      setAssignedSedes(assignedSedes.map(s => s.id === currentSede.id ? { ...s, vipCumpleanosHabilitado: !currentSede.vipCumpleanosHabilitado } : s));
+      setAssignedSedes(assignedSedes.map(s => s.id === sedeId ? { ...s, vipCumpleanosHabilitado: !currentValue } : s));
+      toast.success(!currentValue ? '🎂 VIP de cumpleaños activado para esta sede' : 'VIP de cumpleaños desactivado');
     } catch {
       toast.error('Error al cambiar estado del beneficio');
+    } finally {
+      setTogglingSedeId(null);
     }
   };
 
@@ -515,31 +516,101 @@ function PriceRow({ base, sedePrices, isSuperAdmin, activeSedeId, handleSaveLoca
                   </h2>
                 </div>
                 <div className="flex flex-col gap-5">
-                  {/* Toggle para ADMIN_SEDE */}
-                  {rol === 'ADMIN_SEDE' && activeSedeId && activeSedeId !== 'all' && (
-                    <div className="p-5 rounded-3xl bg-black/40 backdrop-blur-xl border border-zinc-800 flex flex-col md:flex-row gap-4 items-center justify-between relative overflow-hidden group transition-all hover:border-amber-500/30">
-                      <div className="absolute -inset-10 bg-gradient-to-r from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 blur-3xl transition-opacity pointer-events-none" />
-                      <div className="flex items-center gap-4 z-10 w-full md:w-auto">
-                         <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-amber-500/10 text-amber-500 shrink-0">
-                           <Activity className="w-6 h-6" />
-                         </div>
-                         <div>
-                           <h3 className="text-lg font-black text-white leading-tight">Beneficio: Cumpleaños VIP</h3>
-                           <p className="text-xs text-zinc-400 mt-1">Habilita entradas VIP gratis por cumpleaños para socios en tu sede.</p>
-                         </div>
+                  {/* Sección Cumpleaños VIP para ADMIN_SEDE */}
+                  {rol === 'ADMIN_SEDE' && (
+                    <div className="mb-6">
+                      <div className="flex items-center gap-3 mb-5">
+                        <div className="p-2.5 bg-pink-500/10 rounded-xl"><Cake className="w-6 h-6 text-pink-500" /></div>
+                        <div>
+                          <h2 className="text-xl font-black text-white">Cumpleaños VIP por Sede</h2>
+                          <p className="text-sm text-zinc-400">Activa el upgrade a VIP para el nivel Negro. Los niveles Azul y Dorado reciben 2D siempre.</p>
+                        </div>
                       </div>
-                      <button
-                        onClick={toggleBeneficio}
-                        className={`px-6 py-3 rounded-2xl text-sm font-black tracking-widest uppercase transition-all shadow-lg z-10 w-full md:w-auto ${
-                          assignedSedes.find(s => s.id.toString() === activeSedeId)?.vipCumpleanosHabilitado
-                            ? 'bg-amber-500 text-black hover:bg-amber-400 shadow-amber-500/20'
-                            : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-                        }`}
-                      >
-                        {assignedSedes.find(s => s.id.toString() === activeSedeId)?.vipCumpleanosHabilitado 
-                          ? '🎂 Beneficio ON' 
-                          : '❌ Beneficio OFF'}
-                      </button>
+
+                      {/* Tabla de referencia */}
+                      <div className="bg-black/40 border border-zinc-800 rounded-2xl p-5 mb-5 overflow-x-auto">
+                        <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3">Tabla de beneficios por nivel (referencia)</p>
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="text-xs font-bold text-zinc-500 uppercase">
+                              <th className="text-left pb-2">Nivel</th>
+                              <th className="text-center pb-2">Sede CON VIP</th>
+                              <th className="text-center pb-2">Sede SIN VIP</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-zinc-800">
+                            {[
+                              { tier: 'Negro', sedeConVip: '1 entrada VIP 🏆', sedeSinVip: '2 entradas 2D', color: 'text-zinc-300' },
+                              { tier: 'Dorado', sedeConVip: '2 entradas 2D', sedeSinVip: '2 entradas 2D', color: 'text-amber-500' },
+                              { tier: 'Azul', sedeConVip: '1 entrada 2D', sedeSinVip: '1 entrada 2D', color: 'text-blue-500' },
+                            ].map(row => (
+                              <tr key={row.tier}>
+                                <td className={`py-2.5 font-black ${row.color}`}>{row.tier}</td>
+                                <td className="py-2.5 text-center text-white font-semibold">{row.sedeConVip}</td>
+                                <td className="py-2.5 text-center text-zinc-400">{row.sedeSinVip}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Tarjetas por sede (todas las asignadas o la seleccionada) */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {(activeSedeId && activeSedeId !== 'all' 
+                          ? assignedSedes.filter(s => s.id.toString() === activeSedeId)
+                          : assignedSedes).map(sede => (
+                          <motion.div
+                            key={sede.id}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`relative overflow-hidden rounded-2xl border p-5 transition-all ${
+                              sede.vipCumpleanosHabilitado
+                                ? 'bg-gradient-to-br from-pink-500/10 to-amber-500/10 border-pink-500/30'
+                                : 'bg-black/40 border-zinc-800'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-xl ${
+                                  sede.vipCumpleanosHabilitado ? 'bg-pink-500/20' : 'bg-zinc-800'
+                                }`}>
+                                  <MapPin className={`w-5 h-5 ${
+                                    sede.vipCumpleanosHabilitado ? 'text-pink-500' : 'text-zinc-500'
+                                  }`} />
+                                </div>
+                                <div>
+                                  <p className="font-black text-white text-sm">{sede.nombre}</p>
+                                  <p className="text-[11px] text-zinc-400">{sede.ciudad}</p>
+                                </div>
+                              </div>
+                              <button
+                                id={`toggle-sede-vip-${sede.id}`}
+                                onClick={() => handleToggleSedeVip(sede.id, sede.vipCumpleanosHabilitado)}
+                                disabled={togglingSedeId === sede.id}
+                                className="flex-shrink-0 transition-opacity disabled:opacity-50"
+                                title={sede.vipCumpleanosHabilitado ? 'Desactivar VIP cumpleaños' : 'Activar VIP cumpleaños'}
+                              >
+                                {togglingSedeId === sede.id ? (
+                                  <div className="w-7 h-7 border-2 border-pink-500/40 border-t-pink-500 rounded-full animate-spin" />
+                                ) : sede.vipCumpleanosHabilitado ? (
+                                  <ToggleRight className="w-10 h-10 text-pink-500" />
+                                ) : (
+                                  <ToggleLeft className="w-10 h-10 text-zinc-500" />
+                                )}
+                              </button>
+                            </div>
+                            <div className="mt-3 pt-3 border-t border-white/5">
+                              <span className={`inline-flex items-center gap-1.5 text-[11px] font-black px-2.5 py-1 rounded-full ${
+                                sede.vipCumpleanosHabilitado
+                                  ? 'bg-pink-500/20 text-pink-400 border border-pink-500/30'
+                                  : 'bg-zinc-800 text-zinc-400'
+                              }`}>
+                                {sede.vipCumpleanosHabilitado ? '🎂 VIP Activado — Negro recibe 1 VIP' : '2D — Negro recibe 2 entradas 2D'}
+                              </span>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
                     </div>
                   )}
                   <AnimatePresence>
