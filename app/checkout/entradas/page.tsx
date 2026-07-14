@@ -534,11 +534,12 @@ export default function CheckoutEntradasPage() {
                           </div>
                         </div>
                       );
-                    })
-                  )}
-                </>
-              )}
-            </div>
+                    })}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
           </div>
         </div>
       </div>
