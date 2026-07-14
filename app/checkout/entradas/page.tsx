@@ -167,8 +167,7 @@ export default function CheckoutEntradasPage() {
 
   const totalSelected = 
     Object.values(selectedTickets).reduce((a, b) => a + b, 0) + 
-    dynamicBenefits.reduce((acc, b) => acc + (selectedBenefits[String(b.id)] || 0) * (b.ticketCount || 1), 0) +
-    (birthdayBenefit && selectedTickets['BENEFICIO_CUMPLEANOS'] ? selectedTickets['BENEFICIO_CUMPLEANOS'] : 0);
+    dynamicBenefits.reduce((acc, b) => acc + (selectedBenefits[String(b.id)] || 0) * (b.ticketCount || 1), 0);
 
   const isMatched = totalSelected === seatsCount;
 
