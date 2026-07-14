@@ -274,6 +274,32 @@ export default function DulceriaPage() {
                   }
                 };
 
+                const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                  let val = parseInt(e.target.value);
+                  if (isNaN(val) || val < 0) val = 0;
+                  
+                  if (producto.stock !== undefined && val > producto.stock) {
+                    toast.warning(`Solo hay ${producto.stock} unidades disponibles en esta sede`);
+                    val = producto.stock;
+                  }
+
+                  if (val === 0) {
+                    if (currentQuantity > 0) {
+                      useCartStore.getState().updateSnackQuantity(producto.id, 0);
+                    }
+                  } else if (currentQuantity === 0) {
+                    addSnack({
+                      productoId: producto.id,
+                      nombre: producto.nombre,
+                      precio: producto.precio,
+                      cantidad: val,
+                      imagen: producto.imagen || '/images/popcorn.jpg',
+                    });
+                  } else {
+                    useCartStore.getState().updateSnackQuantity(producto.id, val);
+                  }
+                };
+
                 return (
                   <motion.div
                     key={producto.id}
@@ -321,9 +347,14 @@ export default function DulceriaPage() {
                             >
                               <Minus className="w-4 h-4" />
                             </button>
-                            <span className="px-3 font-bold text-foreground min-w-[2rem] text-center">
-                              {currentQuantity}
-                            </span>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="0"
+                              value={currentQuantity === 0 ? '' : currentQuantity}
+                              onChange={handleInputChange}
+                              className="w-12 bg-transparent text-center font-bold outline-none text-foreground border-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                            />
                             <button
                               onClick={handleIncrement}
                               className="p-3 hover:bg-black/10 transition-colors text-primary"
