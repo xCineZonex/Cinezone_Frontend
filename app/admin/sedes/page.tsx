@@ -73,18 +73,6 @@ export default function AdminSedesPage() {
     }
   };
 
-  const toggleBeneficio = async (id: number, estadoActual: boolean) => {
-    try {
-      await api.patch(`/admin/sedes/${id}/beneficio-vip-cumpleanos`, null, {
-        params: { habilitado: !estadoActual }
-      });
-      toast.success(!estadoActual ? 'Beneficio de Cumpleaños activado' : 'Beneficio de Cumpleaños desactivado');
-      fetchSedes();
-    } catch {
-      toast.error('No se pudo cambiar el estado del beneficio');
-    }
-  };
-
   if (loading) {
     return <div className="p-8 text-center text-muted-foreground animate-pulse">Cargando sedes...</div>;
   }
@@ -140,17 +128,6 @@ export default function AdminSedesPage() {
                 >
                   {sede.activa ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
                   {sede.activa ? 'Sede Activa' : 'Sede Inactiva'}
-                </button>
-                <button
-                  onClick={() => toggleBeneficio(sede.id, sede.vipCumpleanosHabilitado)}
-                  className={`px-2 py-1 rounded text-xs font-bold flex items-center gap-1 transition-colors w-full justify-center ${
-                    sede.vipCumpleanosHabilitado
-                      ? 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20'
-                      : 'bg-zinc-500/10 text-zinc-500 hover:bg-zinc-500/20'
-                  }`}
-                  title="Activar/Desactivar Beneficio de Cumpleaños para esta sede"
-                >
-                  {sede.vipCumpleanosHabilitado ? '🎂 Cumpleaños VIP ON' : '❌ Cumpleaños VIP OFF'}
                 </button>
               </div>
             </div>
