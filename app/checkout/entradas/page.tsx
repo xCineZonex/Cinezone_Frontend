@@ -329,41 +329,7 @@ export default function CheckoutEntradasPage() {
             </button>
           </div>
 
-          {birthdayBenefit && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-r from-amber-500 to-pink-500 p-[2px] rounded-2xl mb-6 shadow-xl shadow-amber-500/20"
-            >
-              <div className="bg-background/95 backdrop-blur-xl p-6 rounded-[14px] flex flex-col sm:flex-row items-center gap-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-pink-500 rounded-full flex items-center justify-center shrink-0 shadow-inner">
-                  <span className="text-4xl">🎂</span>
-                </div>
-                <div className="flex-1 text-center sm:text-left">
-                  <h3 className="text-2xl font-black bg-gradient-to-r from-amber-500 to-pink-500 bg-clip-text text-transparent">¡Feliz Cumpleaños!</h3>
-                  <p className="text-muted-foreground mt-1 font-medium">Tienes {birthdayBenefit.name} esperando por ti.</p>
-                  {birthdayBenefit.price === 0 && <span className="inline-block mt-2 px-3 py-1 bg-green-500/20 text-green-500 font-black text-xs rounded-full uppercase tracking-widest border border-green-500/30">Totalmente Gratis</span>}
-                </div>
-                <div className="flex items-center gap-4 bg-secondary/50 p-2 rounded-xl border border-border">
-                  <button 
-                    onClick={() => handleGeneralChange('BENEFICIO_CUMPLEANOS', -1)} 
-                    disabled={(selectedTickets['BENEFICIO_CUMPLEANOS'] || 0) <= 0} 
-                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-background hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50 transition-all shadow-sm"
-                  >
-                    <Minus className="w-5 h-5" />
-                  </button>
-                  <span className="font-black text-xl w-6 text-center">{selectedTickets['BENEFICIO_CUMPLEANOS'] || 0}</span>
-                  <button 
-                    onClick={() => handleGeneralChange('BENEFICIO_CUMPLEANOS', 1)} 
-                    disabled={totalSelected + 1 > seatsCount} 
-                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-background hover:bg-green-500 hover:text-white disabled:opacity-50 transition-all shadow-sm"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
+
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Column 1: Entradas generales */}
@@ -422,10 +388,44 @@ export default function CheckoutEntradasPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {dynamicBenefits.length === 0 ? (
+                  {!birthdayBenefit && dynamicBenefits.length === 0 ? (
                     <p className="text-muted-foreground text-sm">No tienes beneficios de entradas disponibles por el momento.</p>
                   ) : (
-                    dynamicBenefits.map(b => {
+                    <>
+                      {birthdayBenefit && (
+                        <div className="bg-gradient-to-br from-amber-500/20 to-pink-500/20 border border-amber-500/30 p-4 rounded-xl relative overflow-hidden transition-colors">
+                          <div className="absolute top-0 right-0 w-16 h-16 bg-pink-500/10 rounded-bl-full transition-colors" />
+                          <div className="flex justify-between items-start mb-1">
+                            <h4 className="font-bold text-pink-500 flex items-center gap-2">🎂 {birthdayBenefit.name}</h4>
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+                            ¡Feliz Cumpleaños! Disfruta tu entrada especial.
+                          </p>
+                          <div className="flex justify-between items-end">
+                            <div>
+                              <p className="font-black text-xl text-foreground">
+                                {birthdayBenefit.price === 0 ? <span className="text-yellow-500">GRATIS</span> : `S/ ${birthdayBenefit.price.toFixed(2)}`}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center bg-background/50 rounded-lg p-1 border border-pink-500/30">
+                                <button 
+                                  onClick={() => handleGeneralChange('BENEFICIO_CUMPLEANOS', -1)}
+                                  disabled={(selectedTickets['BENEFICIO_CUMPLEANOS'] || 0) <= 0}
+                                  className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-white/10 text-muted-foreground hover:text-pink-400 disabled:opacity-30 transition-colors"
+                                ><Minus className="w-4 h-4 text-pink-500" /></button>
+                                <span className="w-6 text-center font-bold text-foreground text-sm">{selectedTickets['BENEFICIO_CUMPLEANOS'] || 0}</span>
+                                <button 
+                                  onClick={() => handleGeneralChange('BENEFICIO_CUMPLEANOS', 1)}
+                                  disabled={totalSelected + 1 > seatsCount}
+                                  className="w-8 h-8 rounded-md flex items-center justify-center bg-pink-500/10 text-pink-500 hover:bg-pink-500 hover:text-white disabled:opacity-30 transition-colors"
+                                ><Plus className="w-4 h-4"/></button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {dynamicBenefits.map(b => {
                       const tCount = b.ticketCount || 1;
                       const currentSelected = selectedBenefits[String(b.id)] || 0;
                       const bMonthlyLimit = b.monthlyLimit || 0;
@@ -536,7 +536,7 @@ export default function CheckoutEntradasPage() {
                       );
                     })
                   )}
-                </div>
+                </>
               )}
             </div>
           </div>
