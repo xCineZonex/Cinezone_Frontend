@@ -171,11 +171,13 @@ export default function EditSalaEditorPage() {
     const t = tipo?.toUpperCase() || 'FORMAT_2D';
     const baseTools: Tool[] = ['ESTANDAR', 'DISCAPACIDAD'];
     const extraTools: Tool[] = ['ERASER', 'MANTENIMIENTO'];
-    
-    const hasVipSeats = grid.some(row => row.some(cell => cell.type === 'VIP'));
 
     if (t === 'VIP') return ['VIP', ...extraTools];
-    if (t === 'IMAX' || hasVipSeats) return [...baseTools, 'VIP', ...extraTools];
+    // IMAX: solo Estándar + Discapacidad + Borrador + Mantenimiento (sin VIP)
+    if (t === 'IMAX') return [...baseTools, ...extraTools];
+    // Salas regulares/3D/4DX: si ya tienen asientos VIP cargados, mostrar la herramienta
+    const hasVipSeats = grid.some(row => row.some(cell => cell.type === 'VIP'));
+    if (hasVipSeats) return [...baseTools, 'VIP', ...extraTools];
     return [...baseTools, ...extraTools];
   };
 

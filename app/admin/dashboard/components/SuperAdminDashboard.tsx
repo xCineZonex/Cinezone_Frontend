@@ -5,7 +5,7 @@ import api from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
-import { TrendingUp, Users, Ticket, Film, Building2, Popcorn, AlertTriangle, ShieldAlert, Award, Gift } from "lucide-react";
+import { TrendingUp, Users, Ticket, Film, Building2, Popcorn, AlertTriangle, Award, Gift } from "lucide-react";
 
 const glassTooltipStyle = {
   backgroundColor: 'rgba(9, 9, 11, 0.85)',
@@ -29,7 +29,6 @@ export default function SuperAdminDashboard() {
     usuariosActivos: 0,
     topPeliculas: [],
     ocupacionSedes: [],
-    solicitudesPresupuestoPendientes: 0,
     alertasSistemaCajas: 0,
     termometroQuejas: [],
     distribucionClientes: [],
@@ -184,20 +183,7 @@ export default function SuperAdminDashboard() {
       {/* 3. Centro Auditoria */}
       <section className="space-y-6">
         <h2 className="text-2xl font-bold text-white border-b border-white/10 pb-2">3. Centro Auditoria</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <motion.div variants={cardVariants} initial="hidden" animate="visible" transition={{ delay: 0.5 }}>
-            <Card className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 border-orange-500/20 shadow-[0_0_40px_-15px_rgba(249,115,22,0.2)] h-full">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-bold text-muted-foreground uppercase flex items-center gap-2">
-                  <ShieldAlert className="w-4 h-4 text-orange-500" /> Solicitudes Presupuesto
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-black text-white">{data.solicitudesPresupuestoPendientes || 0}</div>
-                <p className="text-muted-foreground mt-2 text-sm">Pendientes de aprobación</p>
-              </CardContent>
-            </Card>
-          </motion.div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
           <motion.div variants={cardVariants} initial="hidden" animate="visible" transition={{ delay: 0.6 }}>
             <Card className="bg-gradient-to-br from-red-500/10 to-rose-500/10 border-red-500/20 shadow-[0_0_40px_-15px_rgba(239,68,68,0.2)] h-full">
