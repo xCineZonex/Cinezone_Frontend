@@ -18,6 +18,10 @@ export default function CashShiftModal({ onOpenSuccess, moduleName }: { onOpenSu
       toast.error('Ingrese un monto base válido');
       return;
     }
+    if (!/^\d+(\.\d{1,2})?$/.test(openingBalance)) {
+      toast.error('El monto base no puede tener más de 2 decimales');
+      return;
+    }
 
     setLoading(true);
     try {
