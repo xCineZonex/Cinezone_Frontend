@@ -207,8 +207,8 @@ export default function CheckoutEntradasPage() {
         label: birthdayBenefit.name,
         cantidad: selectedTickets['BENEFICIO_CUMPLEANOS'],
         precio: birthdayBenefit.price,
-        typeKey: 'BENEFICIO_CUMPLEANOS',
-        benefitId: birthdayBenefit.pendingBenefitId
+        typeKey: 'BENEFICIO', // Backend TicketType only has BENEFICIO
+        pendingBenefitId: birthdayBenefit.pendingBenefitId
       });
     }
 

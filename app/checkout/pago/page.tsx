@@ -193,14 +193,14 @@ export default function CheckoutPagoPage() {
     try {
       // 1. Mapear tickets a asientos (distribución simple)
       // El backend espera una lista de asientos con su tipo de entrada.
-      const ticketPool: {type: string, price: number, benefitId?: number}[] = [];
+      const ticketPool: {type: string, price: number, benefitId?: number, pendingBenefitId?: number}[] = [];
       tickets.forEach(t => {
         for (let i = 0; i < t.cantidad; i++) {
           let backendType = t.typeKey || 'NORMAL';
           if (!['NORMAL', 'TERCERA_EDAD', 'DISCAPACIDAD', 'NINO', 'BENEFICIO', 'PROMO'].includes(backendType)) {
             backendType = 'NORMAL';
           }
-          ticketPool.push({ type: backendType, price: t.precio, benefitId: t.benefitId });
+          ticketPool.push({ type: backendType, price: t.precio, benefitId: t.benefitId, pendingBenefitId: t.pendingBenefitId });
         }
       });
 
@@ -208,7 +208,8 @@ export default function CheckoutPagoPage() {
         asientoId: a.asientoId,
         tipoEntrada: ticketPool[index]?.type || 'NORMAL',
         precioCobrado: ticketPool[index]?.price || a.precioCobrado || 0,
-        beneficioId: ticketPool[index]?.benefitId || null
+        beneficioId: ticketPool[index]?.benefitId || null,
+        pendingBenefitId: ticketPool[index]?.pendingBenefitId || null
       }));
 
       const payload: any = {
