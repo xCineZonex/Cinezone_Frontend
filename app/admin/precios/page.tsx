@@ -513,24 +513,35 @@ function PriceRow({ base, sedePrices, isSuperAdmin, activeSedeId, handleSaveLoca
                   <h2 className="text-xl font-bold text-white flex items-center gap-2">
                     <Activity className="w-5 h-5 text-amber-500" /> Entradas de Beneficio / Promoción
                   </h2>
-                  
-                  {/* Toggle para ADMIN_SEDE (y SUPER_ADMIN con sede seleccionada) */}
-                  {rol === 'ADMIN_SEDE' && activeSedeId && activeSedeId !== 'all' && (
-                    <button
-                      onClick={toggleBeneficio}
-                      className={`px-4 py-2 rounded-xl text-xs font-black tracking-widest uppercase transition-all shadow-lg shadow-black/50 ${
-                        assignedSedes.find(s => s.id.toString() === activeSedeId)?.vipCumpleanosHabilitado
-                          ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50 hover:bg-amber-500 hover:text-white'
-                          : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700'
-                      }`}
-                    >
-                      {assignedSedes.find(s => s.id.toString() === activeSedeId)?.vipCumpleanosHabilitado 
-                        ? '🎂 Cumpleaños VIP ON' 
-                        : '❌ Cumpleaños VIP OFF'}
-                    </button>
-                  )}
                 </div>
                 <div className="flex flex-col gap-5">
+                  {/* Toggle para ADMIN_SEDE */}
+                  {rol === 'ADMIN_SEDE' && activeSedeId && activeSedeId !== 'all' && (
+                    <div className="p-5 rounded-3xl bg-black/40 backdrop-blur-xl border border-zinc-800 flex flex-col md:flex-row gap-4 items-center justify-between relative overflow-hidden group transition-all hover:border-amber-500/30">
+                      <div className="absolute -inset-10 bg-gradient-to-r from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 blur-3xl transition-opacity pointer-events-none" />
+                      <div className="flex items-center gap-4 z-10 w-full md:w-auto">
+                         <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-amber-500/10 text-amber-500 shrink-0">
+                           <Activity className="w-6 h-6" />
+                         </div>
+                         <div>
+                           <h3 className="text-lg font-black text-white leading-tight">Beneficio: Cumpleaños VIP</h3>
+                           <p className="text-xs text-zinc-400 mt-1">Habilita entradas VIP gratis por cumpleaños para socios en tu sede.</p>
+                         </div>
+                      </div>
+                      <button
+                        onClick={toggleBeneficio}
+                        className={`px-6 py-3 rounded-2xl text-sm font-black tracking-widest uppercase transition-all shadow-lg z-10 w-full md:w-auto ${
+                          assignedSedes.find(s => s.id.toString() === activeSedeId)?.vipCumpleanosHabilitado
+                            ? 'bg-amber-500 text-black hover:bg-amber-400 shadow-amber-500/20'
+                            : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                        }`}
+                      >
+                        {assignedSedes.find(s => s.id.toString() === activeSedeId)?.vipCumpleanosHabilitado 
+                          ? '🎂 Beneficio ON' 
+                          : '❌ Beneficio OFF'}
+                      </button>
+                    </div>
+                  )}
                   <AnimatePresence>
                     {basePrices.filter(b => b.ticketType === 'BENEFICIO').length > 0 ? (
                       basePrices.filter(b => b.ticketType === 'BENEFICIO').map(base => (
