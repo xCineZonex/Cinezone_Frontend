@@ -59,6 +59,15 @@ export default function NuevaDulceriaPage() {
     setFormData({ ...formData, [name]: value });
   };
 
+  const handleBlurPrecio = (e: React.FocusEvent<HTMLInputElement>) => {
+    const val = parseFloat(e.target.value);
+    if (!isNaN(val)) {
+      setFormData({ ...formData, precio: Math.max(0, val).toFixed(2) });
+    } else {
+      setFormData({ ...formData, precio: '' });
+    }
+  };
+
   const addInsumo = (insumo: any) => {
     if (insumosRequeridos.some(i => i.insumoId === insumo.id)) {
       toast.error('Este insumo ya fue agregado');
@@ -231,6 +240,7 @@ export default function NuevaDulceriaPage() {
                   required
                   value={formData.precio}
                   onChange={handleChange}
+                  onBlur={handleBlurPrecio}
                   className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                   placeholder="0.00"
                 />

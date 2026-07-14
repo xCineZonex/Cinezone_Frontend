@@ -115,16 +115,43 @@ export default function CloseShiftModal({ onClose, onSuccess }: CloseShiftModalP
             >
               <div className="p-6 bg-secondary rounded-2xl space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Efectivo Físico</span>
-                  <span className="font-mono font-bold">S/ {result.montoDeclarado?.toFixed(2)}</span>
+                  <span className="text-muted-foreground">Fondo Inicial</span>
+                  <span className="font-mono">S/ {result.montoApertura?.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Ventas en Sistema</span>
-                  <span className="font-mono font-bold">S/ {result.montoEsperado?.toFixed(2)}</span>
+                <div className="flex justify-between items-center text-green-500">
+                  <span>+ Ventas Efectivo</span>
+                  <span className="font-mono">S/ {result.ventasEfectivo?.toFixed(2)}</span>
                 </div>
+                <div className="flex justify-between items-center text-muted-foreground text-sm">
+                  <span>(Ventas Otros Métodos)</span>
+                  <span className="font-mono">S/ {result.ventasOtros?.toFixed(2)}</span>
+                </div>
+                {result.ingresosAdicionales > 0 && (
+                  <div className="flex justify-between items-center text-blue-500">
+                    <span>+ Ingresos Adicionales</span>
+                    <span className="font-mono">S/ {result.ingresosAdicionales?.toFixed(2)}</span>
+                  </div>
+                )}
+                {result.egresos > 0 && (
+                  <div className="flex justify-between items-center text-red-500">
+                    <span>- Egresos de Caja</span>
+                    <span className="font-mono">S/ {result.egresos?.toFixed(2)}</span>
+                  </div>
+                )}
                 
                 <div className="h-px bg-border my-2" />
                 
+                <div className="flex justify-between items-center font-bold">
+                  <span>Efectivo Esperado</span>
+                  <span className="font-mono">S/ {result.montoEsperado?.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center font-bold">
+                  <span>Efectivo Declarado (Físico)</span>
+                  <span className="font-mono">S/ {result.montoDeclarado?.toFixed(2)}</span>
+                </div>
+
+                <div className="h-px bg-border my-2" />
+
                 <div className="flex justify-between items-center text-lg">
                   <span className="font-bold">Descuadre</span>
                   <span className={`font-mono font-black ${

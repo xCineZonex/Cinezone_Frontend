@@ -306,12 +306,9 @@ export default function SeatEditorPage() {
             <h1 className="font-black text-lg leading-tight">{form.nombre}</h1>
             <p className="text-xs text-muted-foreground">
               {form.gridRows} filas × {form.gridCols} columnas
-              {' · '}
-              <span className="text-blue-400">{countByType('ESTANDAR')} estándar</span>
-              {' · '}
-              <span className="text-yellow-400">{countByType('VIP')} VIP</span>
-              {' · '}
-              <span className="text-green-400">{countByType('DISCAPACIDAD')} disc.</span>
+              {tools.includes('ESTANDAR') && <> · <span className="text-blue-400">{countByType('ESTANDAR')} estándar</span></>}
+              {tools.includes('VIP') && <> · <span className="text-yellow-400">{countByType('VIP')} VIP</span></>}
+              {tools.includes('DISCAPACIDAD') && <> · <span className="text-green-400">{countByType('DISCAPACIDAD')} disc.</span></>}
             </p>
           </div>
         </div>
@@ -365,7 +362,7 @@ export default function SeatEditorPage() {
 
           <div className="mt-4 pt-4 border-t border-border">
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Conteo</p>
-            {(['ESTANDAR', 'VIP', 'DISCAPACIDAD'] as CellType[]).map(t => (
+            {(['ESTANDAR', 'VIP', 'DISCAPACIDAD'] as CellType[]).filter(t => tools.includes(t)).map(t => (
               <div key={t} className="flex items-center justify-between py-1 text-xs">
                 <span className={TOOL_CONFIG[t].color}>{TOOL_CONFIG[t].icon} {TOOL_CONFIG[t].label}</span>
                 <span className="font-bold text-foreground">{countByType(t)}</span>
@@ -374,7 +371,9 @@ export default function SeatEditorPage() {
             <div className="mt-2 pt-2 border-t border-border flex items-center justify-between text-xs">
               <span className="text-muted-foreground font-medium">Total asientos</span>
               <span className="font-black text-primary text-sm">
-                {countByType('ESTANDAR') + countByType('VIP') + countByType('DISCAPACIDAD')}
+                {(['ESTANDAR', 'VIP', 'DISCAPACIDAD'] as CellType[])
+                  .filter(t => tools.includes(t))
+                  .reduce((acc, t) => acc + countByType(t), 0)}
               </span>
             </div>
           </div>

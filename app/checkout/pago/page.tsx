@@ -31,6 +31,7 @@ export default function CheckoutPagoPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [isExpired, setIsExpired] = useState(false);
+  const [paymentSuccessful, setPaymentSuccessful] = useState(false);
 
   const [metodoPago, setMetodoPago] = useState('TARJETA');
   const [taquillaCliente, setTaquillaCliente] = useState<{id: string, nombre: string} | null>(null);
@@ -112,7 +113,7 @@ export default function CheckoutPagoPage() {
 
   // Redirigir si el carrito está vacío o el flujo está incompleto
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || paymentSuccessful) return;
     const isTaquilla = ['TAQUILLA', 'DULCERIA', 'ADMIN_SEDE', 'STAFF'].includes(localStorage.getItem('rol') || '');
     const isDulceriaOnly = !funcionId && snacks.length > 0;
 
@@ -241,6 +242,7 @@ export default function CheckoutPagoPage() {
 
         // 4. Guardar respuesta para la boleta
         setLastPurchaseResponse(purchaseData);
+        setPaymentSuccessful(true);
         
         // 5. Limpiar carrito manteniendo el recibo (para que BoletaPage lo vea)
         clearCart(true);
@@ -264,6 +266,7 @@ export default function CheckoutPagoPage() {
           const initPoint = mpRes.data.initPoint;
           
           setLastPurchaseResponse(purchaseData);
+          setPaymentSuccessful(true);
           clearCart(true);
           
           // Redirigir a Mercado Pago

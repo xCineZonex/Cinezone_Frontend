@@ -238,7 +238,7 @@ export default function AdminSedeDashboard() {
              {dashboardData.revisionArqueos?.map((r: any, i: number) => (
                 <div key={i} className="flex justify-between items-center p-4 border-b border-white/5 hover:bg-white/5">
                    <span className="font-bold text-white">{r.cajero}</span>
-                   <span className={`font-bold ${r.descuadre > 0 ? 'text-red-400' : 'text-emerald-400'}`}>Descuadre: S/{r.descuadre}</span>
+                   <span className={`font-bold ${Math.abs(parseFloat(r.descuadre)) > 0 ? 'text-red-400' : 'text-emerald-400'}`}>Descuadre: S/{r.descuadre}</span>
                 </div>
              ))}
           </CardContent>

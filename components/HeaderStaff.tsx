@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import CloseShiftModal from '@/components/taquilla/CloseShiftModal';
+import CashMovementModal from '@/components/taquilla/CashMovementModal';
 import { toast } from 'sonner';
 
 import { useCartStore } from '@/store/useCartStore';
@@ -15,6 +16,7 @@ export default function HeaderStaff() {
   const router = useRouter();
   const [userProfile, setUserProfile] = useState<any>(null);
   const [showCloseModal, setShowCloseModal] = useState(false);
+  const [showMovementModal, setShowMovementModal] = useState(false);
 
   const [profileHref, setProfileHref] = useState('/staff/selector');
 
@@ -89,6 +91,14 @@ export default function HeaderStaff() {
             </Link>
           )}
           <motion.button
+            onClick={() => setShowMovementModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 font-bold rounded-xl transition-colors text-sm"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            Movimientos
+          </motion.button>
+          <motion.button
             onClick={handleLogout}
             className="flex items-center gap-2 px-4 py-2 bg-destructive/10 text-destructive hover:bg-destructive/20 font-bold rounded-xl transition-colors text-sm"
             whileHover={{ scale: 1.02 }}
@@ -106,6 +116,15 @@ export default function HeaderStaff() {
           onSuccess={() => {
             setShowCloseModal(false);
             handleLogout();
+          }}
+        />
+      )}
+      
+      {showMovementModal && (
+        <CashMovementModal
+          onClose={() => setShowMovementModal(false)}
+          onSuccess={() => {
+            setShowMovementModal(false);
           }}
         />
       )}

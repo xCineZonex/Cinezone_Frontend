@@ -167,8 +167,12 @@ export default function EditSalaEditorPage() {
     }
   };
 
-  const getToolsForSala = (tipo?: string): Tool[] => {
-    const t = tipo?.toUpperCase() || 'FORMAT_2D';
+  const getToolsForSala = (tipo?: string, nombre?: string): Tool[] => {
+    let t = tipo?.toUpperCase();
+    if (!t && nombre?.toUpperCase().includes('VIP')) {
+      t = 'VIP';
+    }
+    t = t || 'FORMAT_2D';
     const baseTools: Tool[] = ['ESTANDAR', 'DISCAPACIDAD'];
     const extraTools: Tool[] = ['ERASER', 'MANTENIMIENTO'];
 
@@ -181,11 +185,11 @@ export default function EditSalaEditorPage() {
     return [...baseTools, ...extraTools];
   };
 
-  const tools: Tool[] = getToolsForSala(salaInfo?.tipo || salaInfo?.formato);
+  const tools: Tool[] = getToolsForSala(salaInfo?.tipo || salaInfo?.formato, salaInfo?.nombre);
 
   useEffect(() => {
     if (salaInfo) {
-      const validTools = getToolsForSala(salaInfo?.tipo);
+      const validTools = getToolsForSala(salaInfo?.tipo || salaInfo?.formato, salaInfo?.nombre);
       if (!validTools.includes(activeTool) && activeTool !== 'MANTENIMIENTO' && activeTool !== 'ERASER') {
         setActiveTool(validTools[0]);
       }
@@ -218,10 +222,10 @@ export default function EditSalaEditorPage() {
               Editando: <span className="text-primary">{salaInfo?.nombre}</span>
             </h1>
             <p className="text-xs text-muted-foreground">
-              {gridRows} filas × {gridCols} columnas ·{' '}
-              <span className="text-blue-400">{countByType('ESTANDAR')} est.</span> ·{' '}
-              <span className="text-yellow-400">{countByType('VIP')} VIP</span> ·{' '}
-              <span className="text-green-400">{countByType('DISCAPACIDAD')} disc.</span>
+              {gridRows} filas × {gridCols} columnas
+              {tools.includes('ESTANDAR') && <> · <span className="text-blue-400">{countByType('ESTANDAR')} est.</span></>}
+              {tools.includes('VIP') && <> · <span className="text-yellow-400">{countByType('VIP')} VIP</span></>}
+              {tools.includes('DISCAPACIDAD') && <> · <span className="text-green-400">{countByType('DISCAPACIDAD')} disc.</span></>}
             </p>
           </div>
         </div>
@@ -273,7 +277,7 @@ export default function EditSalaEditorPage() {
 
           <div className="mt-4 pt-4 border-t border-border">
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Conteo</p>
-            {(['ESTANDAR', 'VIP', 'DISCAPACIDAD'] as CellType[]).map(t => (
+            {(['ESTANDAR', 'VIP', 'DISCAPACIDAD'] as CellType[]).filter(t => tools.includes(t)).map(t => (
               <div key={t} className="flex items-center justify-between py-1 text-xs">
                 <span className={TOOL_CONFIG[t].color}>{TOOL_CONFIG[t].icon} {TOOL_CONFIG[t].label}</span>
                 <span className="font-bold text-foreground">{countByType(t)}</span>
@@ -282,7 +286,9 @@ export default function EditSalaEditorPage() {
             <div className="mt-2 pt-2 border-t border-border flex items-center justify-between text-xs">
               <span className="text-muted-foreground font-medium">Total</span>
               <span className="font-black text-primary text-sm">
-                {countByType('ESTANDAR') + countByType('VIP') + countByType('DISCAPACIDAD')}
+                {(['ESTANDAR', 'VIP', 'DISCAPACIDAD'] as CellType[])
+                  .filter(t => tools.includes(t))
+                  .reduce((acc, t) => acc + countByType(t), 0)}
               </span>
             </div>
           </div>

@@ -81,6 +81,15 @@ export default function EditarDulceriaPage() {
     }
   };
 
+  const handleBlurPrecio = (e: React.FocusEvent<HTMLInputElement>) => {
+    const val = parseFloat(e.target.value);
+    if (!isNaN(val)) {
+      setFormData({ ...formData, precio: Math.max(0, val).toFixed(2) });
+    } else {
+      setFormData({ ...formData, precio: '' });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -182,6 +191,7 @@ export default function EditarDulceriaPage() {
                 required
                 value={formData.precio}
                 onChange={handleChange}
+                onBlur={handleBlurPrecio}
                 className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
               />
             </div>
