@@ -105,6 +105,8 @@ export default function CheckoutEntradasPage() {
             name: bday.nombre || 'Entrada Cumpleaños',
             price: bday.precio,
             pendingBenefitId: bday.pendingBenefitId,
+            cantidad: bday.cantidad ?? 1,
+            descripcion: bday.descripcion || '',
           });
         }
         
@@ -395,7 +397,13 @@ export default function CheckoutEntradasPage() {
                         <div className="bg-gradient-to-br from-amber-500/20 to-pink-500/20 border border-amber-500/30 p-4 rounded-xl relative overflow-hidden transition-colors">
                           <div className="absolute top-0 right-0 w-16 h-16 bg-pink-500/10 rounded-bl-full transition-colors" />
                           <div className="flex justify-between items-start mb-1">
-                            <h4 className="font-bold text-pink-500 flex items-center gap-2">🎂 {birthdayBenefit.name}</h4>
+                            <h4 className="font-bold text-pink-500 flex items-center gap-2">🎂 {birthdayBenefit.name}
+                              {(birthdayBenefit.cantidad ?? 1) > 1 && (
+                                <span className="text-[10px] bg-pink-500/20 text-pink-400 border border-pink-500/30 px-2 py-0.5 rounded-full font-black">
+                                  x{birthdayBenefit.cantidad} disponibles
+                                </span>
+                              )}
+                            </h4>
                           </div>
                           <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
                             ¡Feliz Cumpleaños! Disfruta tu entrada especial.
@@ -416,7 +424,7 @@ export default function CheckoutEntradasPage() {
                                 <span className="w-6 text-center font-bold text-foreground text-sm">{selectedTickets['BENEFICIO_CUMPLEANOS'] || 0}</span>
                                 <button 
                                   onClick={() => handleGeneralChange('BENEFICIO_CUMPLEANOS', 1)}
-                                  disabled={totalSelected + 1 > seatsCount}
+                                  disabled={totalSelected + 1 > seatsCount || (selectedTickets['BENEFICIO_CUMPLEANOS'] || 0) >= (birthdayBenefit?.cantidad ?? 1)}
                                   className="w-8 h-8 rounded-md flex items-center justify-center bg-pink-500/10 text-pink-500 hover:bg-pink-500 hover:text-white disabled:opacity-30 transition-colors"
                                 ><Plus className="w-4 h-4"/></button>
                               </div>

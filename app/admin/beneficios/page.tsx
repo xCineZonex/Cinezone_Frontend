@@ -2,13 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit, Trash2, Search, Star, X, Ticket, Gift, Sparkles, TrendingUp } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Star, X, Ticket, Gift, Sparkles, TrendingUp, ToggleLeft, ToggleRight, Cake, MapPin } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 
 export default function AdminBeneficiosPage() {
   const [beneficios, setBeneficios] = useState<any[]>([]);
   const [niveles, setNiveles] = useState<any[]>([]);
+  const [sedes, setSedes] = useState<any[]>([]);
+  const [togglingSedeId, setTogglingSedeId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -31,14 +33,16 @@ export default function AdminBeneficiosPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [bRes, nRes] = await Promise.all([
+      const [bRes, nRes, sRes] = await Promise.all([
         api.get('/admin/beneficios'),
-        api.get('/admin/catalogo/niveles-fidelidad')
+        api.get('/admin/catalogo/niveles-fidelidad'),
+        api.get('/public/sedes'),
       ]);
       setBeneficios(bRes.data);
       setNiveles(nRes.data);
+      setSedes(sRes.data);
     } catch (error) {
-      toast.error('Error cargando beneficios o niveles');
+      toast.error('Error cargando datos');
     } finally {
       setLoading(false);
     }
@@ -70,9 +74,9 @@ export default function AdminBeneficiosPage() {
         name: formData.name,
         price: parseFloat(formData.price),
         pointsRequired: parseInt(formData.pointsRequired),
-        ticketCount: parseInt(formData.ticketCount),
-        tierId: parseInt(formData.tierId),
-        monthlyLimit: parseInt(formData.monthlyLimit)
+        ticketCount: parseInt(String(formData.ticketCount)),
+        tierId: parseInt(String(formData.tierId)),
+        monthlyLimit: parseInt(String(formData.monthlyLimit))
       };
 
       if (editingId) {
@@ -98,6 +102,21 @@ export default function AdminBeneficiosPage() {
       } catch (error) {
         toast.error('Error al eliminar');
       }
+    }
+  };
+
+  const handleToggleSedeVip = async (sedeId: number, currentValue: boolean) => {
+    setTogglingSedeId(sedeId);
+    try {
+      await api.patch(`/admin/sedes/${sedeId}/beneficio-vip-cumpleanos`, null, {
+        params: { habilitado: !currentValue }
+      });
+      setSedes(prev => prev.map(s => s.id === sedeId ? { ...s, vipCumpleanosHabilitado: !currentValue } : s));
+      toast.success(!currentValue ? '🎂 VIP de cumpleaños activado para esta sede' : 'VIP de cumpleaños desactivado');
+    } catch {
+      toast.error('Error al cambiar el estado');
+    } finally {
+      setTogglingSedeId(null);
     }
   };
 
@@ -155,6 +174,106 @@ export default function AdminBeneficiosPage() {
             <p className="text-sm font-bold text-muted-foreground uppercase">Puntos Requeridos</p>
             <h3 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-500">Variables</h3>
           </div>
+        </div>
+      </div>
+
+      {/* === SECCIÓN CUMPLEAÑOS VIP POR SEDE === */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="p-2.5 bg-pink-500/10 rounded-xl"><Cake className="w-6 h-6 text-pink-500" /></div>
+          <div>
+            <h2 className="text-xl font-black">Cumpleaños VIP por Sede</h2>
+            <p className="text-sm text-muted-foreground">Activa el upgrade a VIP para el nivel Negro. Los niveles Azul y Dorado reciben 2D siempre.</p>
+          </div>
+        </div>
+
+        {/* Tabla de referencia de niveles */}
+        <div className="bg-card/60 border border-white/5 rounded-2xl p-5 mb-5 overflow-x-auto">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Tabla de beneficios por nivel (referencia)</p>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-xs font-bold text-muted-foreground uppercase">
+                <th className="text-left pb-2">Nivel</th>
+                <th className="text-center pb-2">Sede CON VIP</th>
+                <th className="text-center pb-2">Sede SIN VIP</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/40">
+              {[
+                { tier: 'Negro', sedeConVip: '1 entrada VIP 🏆', sedeSinVip: '2 entradas 2D', color: 'text-zinc-300' },
+                { tier: 'Dorado', sedeConVip: '2 entradas 2D', sedeSinVip: '2 entradas 2D', color: 'text-amber-500' },
+                { tier: 'Azul', sedeConVip: '1 entrada 2D', sedeSinVip: '1 entrada 2D', color: 'text-blue-500' },
+              ].map(row => (
+                <tr key={row.tier}>
+                  <td className={`py-2.5 font-black ${row.color}`}>{row.tier}</td>
+                  <td className="py-2.5 text-center text-foreground font-semibold">{row.sedeConVip}</td>
+                  <td className="py-2.5 text-center text-muted-foreground">{row.sedeSinVip}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Tarjetas por sede */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {loading ? (
+            <div className="col-span-3 flex justify-center py-8">
+              <div className="w-8 h-8 border-4 border-pink-500/30 border-t-pink-500 rounded-full animate-spin" />
+            </div>
+          ) : sedes.length === 0 ? (
+            <p className="col-span-3 text-muted-foreground text-sm">No hay sedes registradas.</p>
+          ) : sedes.map(sede => (
+            <motion.div
+              key={sede.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`relative overflow-hidden rounded-2xl border p-5 transition-all ${
+                sede.vipCumpleanosHabilitado
+                  ? 'bg-gradient-to-br from-pink-500/10 to-amber-500/10 border-pink-500/30'
+                  : 'bg-card border-border'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-xl ${
+                    sede.vipCumpleanosHabilitado ? 'bg-pink-500/20' : 'bg-secondary'
+                  }`}>
+                    <MapPin className={`w-5 h-5 ${
+                      sede.vipCumpleanosHabilitado ? 'text-pink-500' : 'text-muted-foreground'
+                    }`} />
+                  </div>
+                  <div>
+                    <p className="font-black text-foreground text-sm">{sede.nombre}</p>
+                    <p className="text-[11px] text-muted-foreground">{sede.ciudad}</p>
+                  </div>
+                </div>
+                <button
+                  id={`toggle-sede-vip-${sede.id}`}
+                  onClick={() => handleToggleSedeVip(sede.id, sede.vipCumpleanosHabilitado)}
+                  disabled={togglingSedeId === sede.id}
+                  className="flex-shrink-0 transition-opacity disabled:opacity-50"
+                  title={sede.vipCumpleanosHabilitado ? 'Desactivar VIP cumpleaños' : 'Activar VIP cumpleaños'}
+                >
+                  {togglingSedeId === sede.id ? (
+                    <div className="w-7 h-7 border-2 border-pink-500/40 border-t-pink-500 rounded-full animate-spin" />
+                  ) : sede.vipCumpleanosHabilitado ? (
+                    <ToggleRight className="w-10 h-10 text-pink-500" />
+                  ) : (
+                    <ToggleLeft className="w-10 h-10 text-muted-foreground" />
+                  )}
+                </button>
+              </div>
+              <div className="mt-3 pt-3 border-t border-white/5">
+                <span className={`inline-flex items-center gap-1.5 text-[11px] font-black px-2.5 py-1 rounded-full ${
+                  sede.vipCumpleanosHabilitado
+                    ? 'bg-pink-500/20 text-pink-400 border border-pink-500/30'
+                    : 'bg-secondary text-muted-foreground'
+                }`}>
+                  {sede.vipCumpleanosHabilitado ? '🎂 VIP Activado — Negro recibe 1 VIP' : '2D — Negro recibe 2 entradas 2D'}
+                </span>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </div>
 
@@ -331,7 +450,7 @@ export default function AdminBeneficiosPage() {
                       type="number" 
                       min="1" 
                       value={formData.ticketCount} 
-                      onChange={e => setFormData({...formData, ticketCount: e.target.value})} 
+                      onChange={e => setFormData({...formData, ticketCount: Number(e.target.value)})} 
                       className="w-full px-5 py-4 bg-secondary/50 border border-border rounded-2xl focus:outline-none focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all font-bold text-xl text-center" 
                     />
                   </div>
@@ -385,7 +504,7 @@ export default function AdminBeneficiosPage() {
                       type="number" 
                       min="0"
                       value={formData.monthlyLimit} 
-                      onChange={e => setFormData({...formData, monthlyLimit: e.target.value})} 
+                      onChange={e => setFormData({...formData, monthlyLimit: Number(e.target.value)})} 
                       className="w-full px-5 py-4 bg-secondary/50 border border-border rounded-2xl focus:outline-none focus:bg-background focus:ring-4 focus:ring-primary/10 transition-all font-bold text-xl text-center" 
                     />
                   </div>
