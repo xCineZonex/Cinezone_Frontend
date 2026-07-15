@@ -96,13 +96,14 @@ export default function DulceriaPage() {
     setIsAssembling(true);
     try {
       await api.post(`/admin/catalogo/productos/${selectedCombo.id}/generar-stock?stockGenerado=${ensamblajeCantidad}&sedeId=${activeSedeId}`);
-      toast.success('Combo ensamblado y stock actualizado');
+      toast.success(selectedCombo?.categoria === 'COMBO' ? 'Combo ensamblado y stock actualizado' : 'Stock actualizado exitosamente');
       setShowEnsamblarModal(false);
       setEnsamblajeCantidad('');
       fetchProductos();
       fetchSedeStocks(Number(activeSedeId));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Error al ensamblar combo');
+      console.error('Error ensamblando', err);
+      toast.error(err.response?.data?.message || (selectedCombo?.categoria === 'COMBO' ? 'Error al ensamblar combo' : 'Error al actualizar stock'));
     } finally {
       setIsAssembling(false);
     }
@@ -297,7 +298,7 @@ export default function DulceriaPage() {
                             >
                               Alternar Estado en Sede
                             </button>
-                            {prod.categoria === 'COMBO' && (
+                            {true && (
                               <button 
                                 onClick={async () => {
                                   setSelectedCombo(prod);
@@ -326,7 +327,7 @@ export default function DulceriaPage() {
                                 }}
                                 className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex items-center justify-center gap-1"
                               >
-                                <Package className="w-3.5 h-3.5" /> Ensamblar
+                                <Package className="w-3.5 h-3.5" /> {prod.categoria === 'COMBO' ? 'Ensamblar' : 'Reabastecer'}
                               </button>
                             )}
                             <button 
@@ -365,7 +366,7 @@ export default function DulceriaPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-card border border-border rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Package className="w-6 h-6 text-primary" /> Ensamblar Combo
+              <Package className="w-6 h-6 text-primary" /> {selectedCombo?.categoria === 'COMBO' ? 'Ensamblar Combo' : 'Reabastecer Producto'}
             </h2>
             <p className="text-sm text-muted-foreground mb-4">
               {selectedCombo?.nombre}
@@ -404,7 +405,7 @@ export default function DulceriaPage() {
               )}
 
               <div>
-                <label className="block text-sm font-semibold mb-2">Cantidad a ensamblar</label>
+                <label className="block text-sm font-semibold mb-2">{selectedCombo?.categoria === 'COMBO' ? 'Cantidad a ensamblar' : 'Cantidad a reabastecer'}</label>
                 <input
                   type="number"
                   min="1"
@@ -416,7 +417,7 @@ export default function DulceriaPage() {
                   placeholder={`Ej. ${maxCombos ? Math.min(10, maxCombos) : 10}`}
                   disabled={maxCombos === 0}
                 />
-                {maxCombos === 0 && (
+                {maxCombos === 0 && selectedCombo?.categoria === 'COMBO' && (
                   <p className="text-xs text-destructive mt-2 font-medium">No tienes suficiente stock de insumos para ensamblar este combo.</p>
                 )}
               </div>
@@ -433,7 +434,7 @@ export default function DulceriaPage() {
                   disabled={isAssembling}
                   className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-colors"
                 >
-                  {isAssembling ? 'Guardando...' : 'Ensamblar'}
+                  {isAssembling ? 'Guardando...' : (selectedCombo?.categoria === 'COMBO' ? 'Ensamblar' : 'Reabastecer')}
                 </button>
               </div>
             </form>

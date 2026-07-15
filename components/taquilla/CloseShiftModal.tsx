@@ -138,6 +138,12 @@ export default function CloseShiftModal({ onClose, onSuccess }: CloseShiftModalP
                     <span className="font-mono">S/ {result.egresos?.toFixed(2)}</span>
                   </div>
                 )}
+                {result.anulaciones > 0 && (
+                  <div className="flex justify-between items-center text-red-500">
+                    <span>- Anulaciones</span>
+                    <span className="font-mono">S/ {result.anulaciones?.toFixed(2)}</span>
+                  </div>
+                )}
                 
                 <div className="h-px bg-border my-2" />
                 

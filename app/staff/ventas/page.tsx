@@ -126,9 +126,14 @@ export default function HistorialVentasStaffPage() {
                     {item.estado}
                   </span>
                   {!isPortero && (
-                    <div className="text-right">
-                      <span className="text-sm text-muted-foreground">Total:</span>
-                      <span className="font-black text-lg ml-2">S/ {Number(item.montoTotal).toFixed(2)}</span>
+                    <div className="text-right flex flex-col items-end">
+                      <div>
+                        <span className="text-sm text-muted-foreground">Total:</span>
+                        <span className="font-black text-lg ml-2">S/ {Number(item.montoTotal).toFixed(2)}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground font-medium mt-1 uppercase tracking-wider bg-secondary/50 px-2 py-0.5 rounded-sm">
+                        {item.metodoPago || 'Efectivo'}
+                      </span>
                     </div>
                   )}
                   {isPortero && (

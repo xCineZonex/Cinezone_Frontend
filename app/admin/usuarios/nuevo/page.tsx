@@ -115,8 +115,8 @@ export default function NuevoStaffPage() {
       toast.error('El Carnet de Extranjería debe tener exactamente 9 dígitos');
       return;
     }
-    if (!/^\d{9}$/.test(formData.celular)) {
-      toast.error('El celular debe tener exactamente 9 números');
+    if (!/^9\d{8}$/.test(formData.celular)) {
+      toast.error('El celular debe tener 9 números y empezar con el dígito 9');
       return;
     }
     if (formData.contrasena.length < 8) {

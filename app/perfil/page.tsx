@@ -101,6 +101,10 @@ export default function UserProfilePage() {
       toast.error('El DNI debe tener exactamente 8 caracteres');
       return;
     }
+    if (formData.celular && !/^9\d{8}$/.test(formData.celular)) {
+      toast.error('El celular debe tener 9 números y empezar con el dígito 9');
+      return;
+    }
     setSaving(true);
     try {
       // Usamos PATCH para actualizar datos parciales
