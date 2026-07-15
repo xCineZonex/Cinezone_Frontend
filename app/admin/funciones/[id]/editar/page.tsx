@@ -70,7 +70,7 @@ export default function EditarFuncionPage() {
         // Fetch salas for the existing cinema
         if (funcion.cinema?.id) {
           const salasRes = await api.get(`/admin/catalogo/sedes/${funcion.cinema.id}/salas`);
-          setSalas(salasRes.data);
+          setSalas(salasRes.data.filter((s: any) => s.estado === 'ACTIVO'));
         }
       } else {
         toast.error('Función no encontrada');
@@ -95,7 +95,7 @@ export default function EditarFuncionPage() {
       }
       try {
         const response = await api.get(`/admin/catalogo/sedes/${formData.cinemaId}/salas`);
-        setSalas(response.data);
+        setSalas(response.data.filter((s: any) => s.estado === 'ACTIVO'));
       } catch (error) {
         console.error('Error fetching salas:', error);
       }

@@ -48,18 +48,20 @@ export default function NuevaFuncionPage() {
 
   useEffect(() => {
     // Cargar salas al seleccionar una sede
-    const fetchSalas = async () => {
-      if (!formData.cinemaId) {
-        setSalas([]);
-        return;
-      }
-      try {
-        const response = await api.get(`/admin/catalogo/sedes/${formData.cinemaId}/salas`);
-        setSalas(response.data);
-      } catch (error) {
-        console.error('Error fetching salas:', error);
-      }
-    };
+      const fetchSalas = async () => {
+        if (!formData.cinemaId) {
+          setSalas([]);
+          return;
+        }
+        try {
+          const response = await api.get(`/admin/catalogo/sedes/${formData.cinemaId}/salas`);
+          // Filtrar salas para que solo se muestren las activas
+          const salasActivas = response.data.filter((s: any) => s.estado === 'ACTIVO');
+          setSalas(salasActivas);
+        } catch (error) {
+          console.error('Error fetching salas:', error);
+        }
+      };
     fetchSalas();
   }, [formData.cinemaId]);
 

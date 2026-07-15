@@ -68,7 +68,7 @@ export default function AdminSalasPage() {
       toast.success('Nombre actualizado exitosamente');
       activeSedeId !== 'all' ? fetchSalas(Number(activeSedeId)) : fetchAllSalas();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Error al actualizar el nombre (asegúrese de que no tenga funciones activas).');
+      toast.error(error.response?.data?.message || 'Error al actualizar el nombre de la sala.');
     }
   };
 
