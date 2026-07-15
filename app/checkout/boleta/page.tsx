@@ -135,9 +135,13 @@ export default function CheckoutBoletaPage() {
     const rol = localStorage.getItem('rol');
     const module = localStorage.getItem('staff_module');
     
-    if (rol === 'TAQUILLA' || module === 'TAQUILLA') router.push('/taquilla');
-    else if (rol === 'DULCERIA' || module === 'DULCERIA') router.push('/staff/dulceria');
-    else router.push('/perfil');
+    if (rol === 'TAQUILLA' || (rol !== 'CLIENTE' && rol !== null && module === 'TAQUILLA')) {
+      router.push('/taquilla');
+    } else if (rol === 'DULCERIA' || (rol !== 'CLIENTE' && rol !== null && module === 'DULCERIA')) {
+      router.push('/staff/dulceria');
+    } else {
+      router.push(rol === 'CLIENTE' ? '/perfil' : '/');
+    }
   };
 
   const fechaCompra = new Date(lastPurchaseResponse.fechaCompra);
