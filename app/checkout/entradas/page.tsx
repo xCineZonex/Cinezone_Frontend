@@ -437,9 +437,9 @@ export default function CheckoutEntradasPage() {
                       const currentSelected = selectedBenefits[String(b.id)] || 0;
                       const bMonthlyLimit = b.monthlyLimit || 0;
                       const usedThisMonth = profile?.monthlyBenefitUsage?.[String(b.id)] || 0;
-                      const remainingInMonth = bMonthlyLimit > 0 ? (bMonthlyLimit - usedThisMonth - currentSelected * tCount) : Infinity;
+                      const remainingInMonth = bMonthlyLimit > 0 ? (bMonthlyLimit - usedThisMonth - currentSelected) : Infinity;
                       
-                      const hasEnoughLimit = remainingInMonth >= tCount;
+                      const hasEnoughLimit = remainingInMonth >= 1;
                       const hasEnoughPoints = b.pointsRequired === 0 || (profile.puntos || 0) >= (currentSelected + 1) * b.pointsRequired;
                       const doesNotExceedSeats = totalSelected + tCount <= seatsCount;
                       
@@ -502,7 +502,7 @@ export default function CheckoutEntradasPage() {
                             <h4 className={`font-bold ${colors.title}`}>{b.name}</h4>
                             {bMonthlyLimit > 0 && (
                               <span className={`text-[10px] font-bold ${colors.badgeBg} px-2 py-0.5 rounded-full border`}>
-                                Quedan {remainingInMonth + (currentSelected * tCount)}/{bMonthlyLimit}
+                                Quedan {remainingInMonth + currentSelected}/{bMonthlyLimit}
                               </span>
                             )}
                           </div>
